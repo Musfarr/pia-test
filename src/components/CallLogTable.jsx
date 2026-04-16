@@ -199,7 +199,7 @@ export default function CallLogTable() {
                             </div>
                           </td>
                           <td className="text-center">
-                            <span className="text-secondary small fw-medium">{typeof item.call_duration === 'number' ? `${item.call_duration}s` : '--'}</span>
+                            <span className="text-secondary small fw-medium">{item.call_duration || '--'}</span>
                           </td>
                           <td className="text-center">
                             <span className={`badge px-3 py-2 fw-semibold text-capitalize`} style={{

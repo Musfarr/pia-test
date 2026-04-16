@@ -7,5 +7,9 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: ['ae36667397c3.ngrok-free.app'],
+    middlewareMode: false,
+  },
+  preview: {
+    host: true,
   },
 })

@@ -3,115 +3,171 @@ import { login } from '../services/api';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthProvider.jsx';
 import { useNavigate } from 'react-router-dom';
+import loginBg from '../assets/bgimg.png';
+import logo from '../assets/logo.svg';
+import loginWaveform from '../assets/portalanm.mp4';
+import './Login.css';
 
-export default function Login({ onLogin }) {
+
+
+const FEATURES = [
+  {
+    icon: 'bi-mic-fill',
+    title: 'AI-Powered Voice',
+    desc: 'Intelligent automation for every conversation.',
+  },
+  {
+    icon: 'bi-bar-chart-line',
+    title: 'Real-time Analytics',
+    desc: 'Actionable insights for better decisions',
+  },
+  {
+    icon: 'bi-shield-check',
+    title: 'Secure & Reliable',
+    desc: 'Enterprise-grade security and 99.9% uptime.',
+  },
+];
+
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { SetLoginData } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email && password) {
-
-      try {
-        const result = await login(email, password);
-        console.log(result);
-
-        if (result.status === true || result.status === "success") { // Be specific
-          Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: 'Login successful',
-          });
-          SetLoginData(result.data);
-          navigate('/dashboard');
-        }
-
-        else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Invalid credentials',
-            text: result.message,
-          });
-        }
-
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid credentials',
-          text: error.response.data.message,
-        });
-        console.log(error);
+    if (!email || !password) return;
+    try {
+      const result = await login(email, password);
+      if (result.status === true || result.status === 'success') {
+        Swal.fire({ icon: 'success', title: 'Success', text: 'Login successful' });
+        SetLoginData(result.data);
+        navigate('/dashboard');
+      } else {
+        Swal.fire({ icon: 'error', title: 'Invalid credentials', text: result.message });
       }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid credentials',
+        text: error?.response?.data?.message || 'An error occurred. Please try again.',
+      });
     }
   };
 
   return (
     <div className="login-page">
-      <div className="container">
-        <div className="row justify-content-center align-items-center min-vh-100">
-          <div className='col-12 col-lg-6 d-flex justify-content-center justify-content-lg-start align-items-center mb-4 mb-lg-0'>
-            
-            <img src="sidebarlogo.svg" className='login-logo img-fluid' alt="" />
-            {/* <h1>AI Voice Analytics</h1> */}
-            
-          </div>
-          <div className="col-12 col-lg-6 d-flex justify-content-center align-items-center">
-            <div className="card login-card">
-              <div className="card-body p-5 ">
-                <div className="text-center mb-4">
-                  {/* <img src="favicon.ico" alt="" style={{ width: '2em' }} /> */}
-                  {/* <i className="bi bi-headset" style={{ fontSize: '3rem', color: 'var(--navy-dark)' }}></i> */}
-                  <h2 className="mt-3 fw-bold">AI Voice Analytics</h2>
-                  <p className="text-muted">Sign in to access your dashboard</p>
+
+      {/* ── LEFT PANEL ── */}
+      <div className="login-left">
+        <img src={loginBg} alt="" className="login-left-bg" aria-hidden="true" />
+        <video src={loginWaveform} autoPlay loop muted className="login-waveform" aria-hidden="true" />
+        <div className="login-left-overlay" aria-hidden="true" />
+
+        <div className="login-left-content">
+          <h1 className="login-title">
+            Where Voice<br />
+            Meets <span className="login-title-accent">Intelligence</span>
+          </h1>
+          <p className="login-tagline">
+            Aivex empowers organizations with AI-driven voice automation and real-time insights
+          </p>
+          <div className="login-features">
+            {FEATURES.map((f, i) => (
+              <div key={i} className="login-feature">
+                <div className="login-feature-icon-box">
+                  <i className={`bi ${f.icon}`} />
                 </div>
-
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-3">
-                    <label htmlFor="email" className="form-label">
-                      Email address
-                    </label>
-                    <input
-                      type="email"
-                      className="form-control form-control-lg"
-                      id="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label htmlFor="password" className="form-label">
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      className="form-control form-control-lg"
-                      id="password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <button type="submit" className="btn btn-primary btn-lg w-100">
-                    Sign In
-                  </button>
-                </form>
-
-                <div className="text-center mt-3">
-                  <small className="text-muted">Powered by Convex Interactive</small>
+                <div className="login-feature-body">
+                  <p className="login-feature-title">{f.title}</p>
+                  <p className="login-feature-desc">{f.desc}</p>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
+
+      {/* ── RIGHT PANEL ── */}
+      <div className="login-right">
+        <div className="login-form-wrap">
+
+          {/* Logo */}
+          <div className="login-logo-section">
+            <img src={logo}></img>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} noValidate>
+
+            {/* Email */}
+            <div className="login-field">
+              <label htmlFor="lf-email" className="login-field-label">Email</label>
+              <div className="login-input-wrap">
+                <i className="bi bi-envelope login-input-icon" />
+                <input
+                  type="email"
+                  id="lf-email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="login-field">
+              <label htmlFor="lf-password" className="login-field-label">Password</label>
+              <div className="login-input-wrap">
+                <i className="bi bi-lock login-input-icon" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="lf-password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="login-pw-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Remember + Forgot row */}
+            <div className="login-meta-row">
+              <label className="login-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                />
+                <span className="login-checkbox-box" />
+                <span>Remember me</span>
+              </label>
+              <a href="#" className="login-forgot-link">Forgot password?</a>
+            </div>
+
+            {/* Sign in */}
+            <button type="submit" className="login-btn-signin">
+              Sign in
+            </button>
+
+          </form>
+        </div>
+      </div>
+
     </div>
   );
 }

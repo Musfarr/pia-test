@@ -38,13 +38,7 @@ export default function MetricsCards({ startDate, endDate }) {
       color: '#8b5cf6',
       bg: '#f5f3ff'
     },
-    {
-      label: 'TOTAL MINUTES',
-      value: data?.total_call_minutes ?? '--',
-      icon: 'bi-graph-up-arrow',
-      color: '#ec4899',
-      bg: '#fdf2f8'
-    },
+    
   ];
 
   return (

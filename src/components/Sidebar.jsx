@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-
+import logo from '../assets/logo.svg';
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: DashboardIcon },
   { href: '/dashboard/live-demo', label: 'Live Demo', icon: HeadphonesIcon },
@@ -17,6 +17,7 @@ export default function Sidebar({ isCollapsed, isMobileOpen, onToggle, onMobileC
       <div className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-content">
           <div className="sidebar-header">
+            <img src={logo} style={{width:'200px'}}></img>
             <button className="sidebar-toggle-btn" onClick={onToggle} aria-label="Toggle sidebar">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 12h18M3 6h18M3 18h18" />

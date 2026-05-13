@@ -18,20 +18,20 @@ export default function DashboardHome() {
 
       {/* Main Charts Row */}
       <div className="row g-4 mb-5">
-        <div className="col-12 col-xl-7">
+        <div className="col-12 col-xl-6">
           <CallVolumeChart />
         </div>
-        <div className="col-12 col-xl-5">
+        <div className="col-12 col-xl-6">
           <WordBubble />
         </div>
 
 
 
-        <div className="col-12 col-lg-8">
+        <div className="col-12 col-xl-6">
           <SentimentBar />
         </div>
         
-        <div className="col-12 col-lg-4">
+        <div className="col-12 col-xl-6">
           <TopKeyWords />
         </div>
       </div>
@@ -46,15 +46,26 @@ export default function DashboardHome() {
       {/* Topics & Classification Row */}
       <div className="row g-4 mb-5">
         
-        {/* <div className="col-12 col-lg-6">
+        <div className="col-12 col-lg-6">
           <HorizontalBar />
-        </div> */}
+        </div>
+        <div className="col-12 col-lg-6">
+          <HorizontalBar />
+        </div>
       </div>
 
       {/* Detailed Logs Section */}
-      <div className="mt-5 pb-5">
-        <CallLogTable />
-      </div>
+
+      <div className="row g-4 mb-5">
+
+        <div className="mt-5 pb-5 col-12 col-xl-8">
+          <CallLogTable />
+        </div>
+
+        <div className="mt-5 pb-5 col-12 col-xl-4">
+          <TopKeyWords />
+        </div>
     </div>
+  </div>
   );
 }

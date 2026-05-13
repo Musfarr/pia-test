@@ -22,20 +22,23 @@ body {
 
 /* Dashboard Layout */
 .dashboard-wrapper {
+  padding: 40px;
   display: flex;
   min-height: 100vh;
 }
 
 /* Sidebar */
 .sidebar {
+  margin: 40px 40px 0px;
   position: fixed;
   left: 0;
   top: 0;
   bottom: 0;
   width: var(--sidebar-width);
-  background-color: var(--navy-dark);
-  color: #fff;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.5);
+  box-shadow: 2px 2px 20px rgba(193, 193, 193, 0.3), inset 0px 0px 1px 1px rgba(255, 255, 255, 0.44);
+  border-radius: 20px;
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
   overflow: hidden;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -158,16 +161,14 @@ body {
 
 /* Dashboard Header */
 .dashboard-header {
-  height: var(--header-height);
-  background-color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid #e2e8f0;
+     height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 55px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .user-avatar img {

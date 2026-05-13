@@ -69,7 +69,7 @@ export default function Dashboard({ onLogout }) {
         <DashboardHeader onLogout={onLogout} onMobileMenuClick={toggleSidebar} />
 
         <div className="dashboard-content " >
-          <div className="px-4 py-4">
+          <div className="">
             <Outlet />
           </div>
         </div>

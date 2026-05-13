@@ -4,7 +4,7 @@ export default function DashboardHeader({ onLogout, onMobileMenuClick }) {
   const { user } = useAuth();
 
   return (
-    <header className="dashboard-header shadow-sm">
+    <header className="dashboard-header ">
       <div className="d-flex align-items-center gap-3">
         <button
           className="btn-icon d-lg-none"
@@ -14,6 +14,11 @@ export default function DashboardHeader({ onLogout, onMobileMenuClick }) {
         >
           <i className="bi bi-list" style={{ fontSize: '1.4rem' }}></i>
         </button>
+
+        <div className='flex flex-col'>
+        <h3>Overview</h3>
+        <p>Real-time overview of your AI conversational platform</p>
+        </div>
         {/* You could add a title or breadcrumbs here if needed */}
       </div>
 

@@ -5,7 +5,7 @@
   --font-mono: 'JetBrains Mono', monospace;
 
   /* Sophisticated Palette - Slate & Deep Indigo */
-  --bg-main: #f8fafc;
+  --bg-main: rgba(231, 231, 231, 1);
   --bg-card: #ffffff;
   --bg-accent: #f1f5f9;
 
@@ -57,10 +57,9 @@ body {
 }
 
 .card {
-  background: var(--bg-card);
-  border: 1px solid rgba(226, 232, 240, 1);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 2px 2px 20px rgba(193, 193, 193, 0.3), inset 0px 0px 1px 1px rgba(255, 255, 255, 0.44) !important;
+    border-radius: 20px !important;
 }
 
 .card:hover {
@@ -101,26 +100,6 @@ h6 {
   background: #94a3b8;
 }
 
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  background-color: var(--bg-main);
-}
-
-.login-card {
-  width: min(420px, 100%);
-  /* border: 2px solid rgba(112, 121, 120, 0.61) !important; */
-  border-radius: var(--radius-lg);
-
-  box-shadow: var(--shadow-lg);
-}
-
-.login-logo {
-  max-width: 320px;
-  width: 50%;
-  height: auto;
-}
 
 .btn-primary {
   background-color: var(--primary) !important;
@@ -137,25 +116,6 @@ h6 {
   box-shadow: var(--shadow-md);
 }
 
-@media (max-width: 991.98px) {
-  .login-page {
-    padding: 24px 0;
-  }
-
-  .login-card {
-    width: min(480px, 100%);
-  }
-}
-
-@media (max-width: 575.98px) {
-  .login-page {
-    padding: 20px 0;
-  }
-
-  .login-card .card-body {
-    padding: 2rem 1.5rem !important;
-  }
-}
 
 .text-primary1 {
   color: var(--primary) !important;

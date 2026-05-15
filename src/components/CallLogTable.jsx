@@ -64,76 +64,50 @@ export default function CallLogTable() {
   };
 
   return (
-    <div className="card call-log-table" >
-      <div className="  py-4 px-4">
-        <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
-          <div>
-            <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Recent Inquiries</h6>
-            <p className="mb-0 mt-1" style={{ color: '#6B7280', fontSize: '12px' }}>Manage and track all customer communications</p>
+    <div className="card clt-card">
+      <div className="clt-header">
+        <div>
+          <h6 className="clt-title">Recent Inquiries</h6>
+          <p className="clt-subtitle">Manage and track all customer communications</p>
+        </div>
+        <div className="d-flex align-items-center gap-3 flex-wrap">
+          <div className="clt-tab-group">
+            <button
+              type="button"
+              className={`clt-tab ${!isOrphanTab ? 'active' : ''}`}
+              onClick={() => handleTabChange('user')}
+              disabled={isControlsDisabled}
+            >
+              User Inquiries <span className="clt-tab-count">{total || 0}</span>
+            </button>
+            <button
+              type="button"
+              className={`clt-tab ${isOrphanTab ? 'active' : ''}`}
+              onClick={() => handleTabChange('orphan')}
+              disabled={isControlsDisabled}
+            >
+              Orphan Calls <span className="clt-tab-count">{total_orphan_calls || 0}</span>
+            </button>
           </div>
-
-          <div className="d-flex align-items-center gap-3">
-            <div className="d-flex gap-1 p-1 rounded-3" style={{ backgroundColor: '#F3F4F6' }}>
-              <button
-                type="button"
-                className="btn btn-sm fw-medium"
-                style={!isOrphanTab ? { backgroundColor: '#fff', color: '#111827', borderRadius: '8px', fontSize: '13px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' } : { background: 'none', color: '#6B7280', fontSize: '13px', border: 'none' }}
-                onClick={() => handleTabChange('user')}
-                disabled={isControlsDisabled}
-              >
-                User Inquiries ({total || 0})
+          {!isOrphanTab && (
+            <>
+              <select className="date-filter-select" value={filters.status} onChange={(e) => handleFilterChange('status', e.target.value)} disabled={isControlsDisabled}>
+                <option value="">Status: All</option>
+                {(filterOptions?.statuses || []).map((status) => (
+                  <option key={status} value={status}>{status.replace('_', ' ').charAt(0).toUpperCase() + status.slice(1)}</option>
+                ))}
+              </select>
+              <select className="date-filter-select" value={filters.city_name} onChange={(e) => handleFilterChange('city_name', e.target.value)} disabled={isControlsDisabled}>
+                <option value="">City: All</option>
+                {(filterOptions?.cities || []).map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+              <button className="clt-reset-btn" onClick={clearFilters} disabled={isControlsDisabled}>
+                <i className="bi bi-x-circle"></i> Reset
               </button>
-              <button
-                type="button"
-                className="btn btn-sm fw-medium"
-                style={isOrphanTab ? { backgroundColor: '#fff', color: '#111827', borderRadius: '8px', fontSize: '13px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' } : { background: 'none', color: '#6B7280', fontSize: '13px', border: 'none' }}
-                onClick={() => handleTabChange('orphan')}
-                disabled={isControlsDisabled}
-              >
-                Orphan Calls ({total_orphan_calls || 0})
-              </button>
-            </div>
-
-            {!isOrphanTab && (
-              <>
-                <div className="d-flex gap-2">
-                  <select
-                    className="form-select form-select-sm border-0"
-                    style={{ borderRadius: '8px', backgroundColor: '#F9FAFB', width: 'auto', minWidth: '130px', fontSize: '13px', color: '#374151' }}
-                    value={filters.status}
-                    onChange={(e) => handleFilterChange('status', e.target.value)}
-                    disabled={isControlsDisabled}
-                  >
-                    <option value="">Status: All</option>
-                    {(filterOptions?.statuses || []).map((status) => (
-                      <option key={status} value={status}>
-                        {status.replace('_', ' ').charAt(0).toUpperCase() + status.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-
-                  <select
-                    className="form-select form-select-sm border-0"
-                    style={{ borderRadius: '8px', backgroundColor: '#F9FAFB', width: 'auto', minWidth: '130px', fontSize: '13px', color: '#374151' }}
-                    value={filters.city_name}
-                    onChange={(e) => handleFilterChange('city_name', e.target.value)}
-                    disabled={isControlsDisabled}
-                  >
-                    <option value="">City: All</option>
-                    {(filterOptions?.cities || []).map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <button className="btn btn-sm text-decoration-none fw-semibold" style={{ color: '#2DD4BF', fontSize: '13px' }} onClick={clearFilters} disabled={isControlsDisabled}>
-                  Reset Filters
-                </button>
-              </>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -141,22 +115,22 @@ export default function CallLogTable() {
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
             <thead>
-              <tr style={{ backgroundColor: '#F9FAFB' }}>
+              <tr className="clt-thead-row">
                 {isOrphanTab ? (
                   <>
-                    <th className="ps-4 border-0 py-3 text-uppercase fw-semibold" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Caller Info</th>
-                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Duration</th>
-                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Sentiment</th>
-                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Date & Time</th>
-                    <th className="pe-4 border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Actions</th>
+                    <th className="clt-th ps-4">Caller Info</th>
+                    <th className="clt-th text-center">Duration</th>
+                    <th className="clt-th text-center">Sentiment</th>
+                    <th className="clt-th text-center">Date & Time</th>
+                    <th className="clt-th text-center pe-4">Actions</th>
                   </>
                 ) : (
                   <>
-                    <th className="ps-4 border-0 py-3 text-uppercase fw-semibold" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Customer Info</th>
-                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Location</th>
-                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Status</th>
-                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Date & Time</th>
-                    <th className="pe-4 border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Actions</th>
+                    <th className="clt-th ps-4">Customer Info</th>
+                    <th className="clt-th text-center">Location</th>
+                    <th className="clt-th text-center">Status</th>
+                    <th className="clt-th text-center">Date & Time</th>
+                    <th className="clt-th text-center pe-4">Actions</th>
                   </>
                 )}
               </tr>
@@ -165,76 +139,50 @@ export default function CallLogTable() {
               {isAnyLoading && !displayedRecords?.length ? (
                 <tr>
                   <td colSpan="5" className="text-center py-5">
-                    <div className="spinner-border text-primary1 spinner-border-sm me-2" />
-                    <span className="text-muted">Loading records...</span>
+                    <div className="spinner-border spinner-border-sm me-2" style={{ color: '#173C7C' }} />
+                    <span style={{ color: '#9CA3AF', fontSize: '14px' }}>Loading records...</span>
                   </td>
                 </tr>
               ) : !displayedRecords?.length ? (
                 <tr>
                   <td colSpan="5" className="text-center py-5">
-                    <div className="text-muted opacity-50 mb-2 mt-2">
-                      <i className="bi bi-inbox fs-1"></i>
-                    </div>
-                    <p className="text-muted fw-medium">No results found for your filters</p>
+                    <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#D1D5DB', display: 'block', marginBottom: '8px' }}></i>
+                    <p className="mb-0" style={{ color: '#9CA3AF', fontSize: '14px' }}>No results found for your filters</p>
                   </td>
                 </tr>
               ) : (
                 displayedRecords.map((item, index) => (
                   <React.Fragment key={item.id || index}>
-                    {/* The main data row */}
                     <tr
-                      className={expandedRow === item.id ? 'bg-light bg-opacity-50' : ''}
-                      style={{ cursor: 'pointer', transition: 'background 0.2s' }}
+                      className={`clt-row ${expandedRow === item.id ? 'clt-row--expanded' : ''}`}
                       onClick={() => (item.recording_text || item.summary) && toggleTranscript(item.id)}
                     >
                       {isOrphanTab ? (
                         <>
                           <td className="ps-4 py-3">
-                            <div className="d-flex align-items-center">
-                              <div className="avatar me-3 rounded-circle d-flex align-items-center justify-content-center bg-white border border-light shadow-sm" style={{ width: '40px', height: '40px' }}>
-                                <span className="fw-bold text-primary1" style={{ fontSize: '13px' }}>{(item.caller_num || 'O').toString().charAt(0).toUpperCase()}</span>
-                              </div>
+                            <div className="d-flex align-items-center gap-3">
+                              <div className="clt-avatar">{(item.caller_num || 'O').toString().charAt(0).toUpperCase()}</div>
                               <div>
-                                <div className="fw-bold text-dark mb-0" style={{ fontSize: '14px' }}>{item.caller_num || 'Unknown Caller'}</div>
-                                <div className="text-muted small text-mono" style={{ fontSize: '0.75rem' }}>Orphan Call</div>
+                                <div className="clt-name">{item.caller_num || 'Unknown Caller'}</div>
+                                <div className="clt-sub">Orphan Call</div>
                               </div>
                             </div>
                           </td>
+                          <td className="text-center clt-cell">{item.call_duration || '--'}</td>
                           <td className="text-center">
-                            <span className="text-secondary small fw-medium">{item.call_duration || '--'}</span>
+                            <span className="clt-badge" style={getSentimentStyle(item.customer_sentiment)}>{item.customer_sentiment || 'Unknown'}</span>
                           </td>
-                          <td className="text-center">
-                            <span className={`badge px-3 py-2 fw-semibold text-capitalize`} style={{
-                              backgroundColor: `var(--bg-accent)`,
-                              color: `var(--${getSentimentColor(item.customer_sentiment)})`,
-                              fontSize: '0.7rem'
-                            }}>
-                              {item.customer_sentiment || 'Unknown'}
-                            </span>
-                          </td>
-                          <td className="text-center text-muted small">
-                            {item.created_at || '--'}
-                          </td>
+                          <td className="text-center clt-cell">{item.created_at || '--'}</td>
                           <td className="pe-4 text-center">
                             <div className="d-flex gap-2 justify-content-center" onClick={e => e.stopPropagation()}>
                               {(item.recording_text || item.summary) && (
-                                <button
-                                  className={`btn btn-sm rounded-circle d-flex align-items-center justify-content-center ${expandedRow === item.id ? 'btn-primary shadow-sm' : 'btn-light border-0'}`}
-                                  style={{ width: '32px', height: '32px' }}
-                                  onClick={() => toggleTranscript(item.id)}
-                                >
+                                <button className={`clt-action-btn ${expandedRow === item.id ? 'active' : ''}`} onClick={() => toggleTranscript(item.id)}>
                                   <i className={`bi bi-chat-text${expandedRow === item.id ? '-fill' : ''}`}></i>
                                 </button>
                               )}
                               {item.recording_url && (
-                                <a
-                                  href={item.recording_url.replace('http://', 'https://')}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="btn btn-sm btn-light border-0 rounded-circle d-flex align-items-center justify-content-center text-primary1"
-                                  style={{ width: '32px', height: '32px' }}
-                                >
-                                  <i className="bi bi-play-fill text-primary1"></i>
+                                <a href={item.recording_url.replace('http://', 'https://')} target="_blank" rel="noopener noreferrer" className="clt-action-btn">
+                                  <i className="bi bi-play-fill"></i>
                                 </a>
                               )}
                             </div>
@@ -243,51 +191,31 @@ export default function CallLogTable() {
                       ) : (
                         <>
                           <td className="ps-4 py-3">
-                            <div className="d-flex align-items-center">
-                              <div className="avatar me-3 rounded-circle d-flex align-items-center justify-content-center bg-white border border-light shadow-sm" style={{ width: '40px', height: '40px' }}>
-                                <span className="fw-bold text-primary1" style={{ fontSize: '13px' }}>{(item.name || 'U').charAt(0).toUpperCase()}</span>
-                              </div>
+                            <div className="d-flex align-items-center gap-3">
+                              <div className="clt-avatar">{(item.name || 'U').charAt(0).toUpperCase()}</div>
                               <div>
-                                <div className="fw-bold text-dark mb-0" style={{ fontSize: '14px' }}>{item.name || 'Unknown User'}</div>
-                                <div className="text-muted small text-mono" style={{ fontSize: '0.75rem' }}>{item.email || '-'}</div>
+                                <div className="clt-name">{item.name || 'Unknown User'}</div>
+                                <div className="clt-sub">{item.email || '-'}</div>
                               </div>
                             </div>
                           </td>
+                          <td className="text-center clt-cell">{item.city_name || item.city || '--'}</td>
                           <td className="text-center">
-                            <span className="text-secondary small fw-medium">{item.city_name || item.city || '--'}</span>
+                            <span className="clt-badge" style={getStatusStyle(item.status)}>{item.status || 'N/A'}</span>
                           </td>
-                          <td className="text-center">
-                            <span className={`badge px-3 py-2 fw-semibold text-capitalize`} style={{
-                              backgroundColor: `var(--bg-accent)`,
-                              color: `var(--${getStatusColor(item.status)})`,
-                              fontSize: '0.7rem'
-                            }}>
-                              {item.status || 'N/A'}
-                            </span>
-                          </td>
-                          <td className="text-center text-muted small">
+                          <td className="text-center clt-cell">
                             {item.created_at ? new Date(item.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--'}
                           </td>
                           <td className="pe-4 text-center">
                             <div className="d-flex gap-2 justify-content-center" onClick={e => e.stopPropagation()}>
                               {(item.recording_text || item.summary) && (
-                                <button
-                                  className={`btn btn-sm rounded-circle d-flex align-items-center justify-content-center ${expandedRow === item.id ? 'btn-primary shadow-sm' : 'btn-light border-0'}`}
-                                  style={{ width: '32px', height: '32px' }}
-                                  onClick={() => toggleTranscript(item.id)}
-                                >
+                                <button className={`clt-action-btn ${expandedRow === item.id ? 'active' : ''}`} onClick={() => toggleTranscript(item.id)}>
                                   <i className={`bi bi-chat-text${expandedRow === item.id ? '-fill' : ''}`}></i>
                                 </button>
                               )}
                               {item.recordings && (
-                                <a
-                                  href={item.recordings.replace('http://', 'https://')}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="btn btn-sm btn-light border-0 rounded-circle d-flex align-items-center justify-content-center text-primary1"
-                                  style={{ width: '32px', height: '32px' }}
-                                >
-                                  <i className="bi bi-play-fill text-primary1"></i>
+                                <a href={item.recordings.replace('http://', 'https://')} target="_blank" rel="noopener noreferrer" className="clt-action-btn">
+                                  <i className="bi bi-play-fill"></i>
                                 </a>
                               )}
                             </div>
@@ -295,38 +223,28 @@ export default function CallLogTable() {
                         </>
                       )}
                     </tr>
-                    {/* The expandable transition row */}
                     <tr>
                       <td colSpan="5" className="p-0 border-0">
                         <div className={`expandable-wrapper ${expandedRow === item.id ? 'expanded' : ''}`}>
                           <div className="expandable-content">
                             {(item.recording_text || item.summary) && (
-                              <div className="p-4 mx-4 mb-4 rounded-4 bg-white border border-light shadow-lg">
+                              <div className="clt-expand-card">
                                 <div className="row g-4">
                                   {item.recording_text && (
-                                    <div className="col-lg-7 border-end border-light">
-                                      <div className="d-flex align-items-center mb-4">
-                                        <div className="p-2 bg-primary-light text-primary1 rounded-3 me-3"><i className="bi bi-chat-left-dots"></i></div>
-                                        <h6 className="mb-0 fw-bold">Live Transcript</h6>
+                                    <div className={item.summary ? 'col-lg-7' : 'col-12'} style={item.summary ? { borderRight: '1px solid #F3F4F6' } : {}}>
+                                      <div className="d-flex align-items-center gap-2 mb-3">
+                                        <div className="clt-icon-box"><i className="bi bi-chat-left-dots"></i></div>
+                                        <h6 className="mb-0 fw-semibold" style={{ fontSize: '14px', color: '#111827' }}>Live Transcript</h6>
                                       </div>
-                                      <div className="chat-container bg-light bg-opacity-50 rounded-4 p-4" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                                      <div className="clt-chat-scroll">
                                         {item.recording_text.split('\n').map((line, i) => {
                                           const isAgent = line.toLowerCase().startsWith('agent:');
                                           const content = line.replace(/^(Agent:|Caller:)\s*/i, '');
                                           if (!content) return null;
-
                                           return (
-                                            <div key={i} className={`mb-4 d-flex ${isAgent ? 'flex-row-reverse' : 'flex-row'}`}>
-                                              <div className={`p-3 rounded-4 ${isAgent ? 'text-white shadow-sm' : 'bg-white border text-dark shadow-xs'}`} style={{
-                                                maxWidth: '85%',
-                                                fontSize: '13px',
-                                                backgroundColor: isAgent ? '#7cb342' : '#fff',
-                                                lineHeight: '1.5',
-                                                borderRadius: isAgent ? '20px 20px 4px 20px' : '20px 20px 20px 4px'
-                                              }}>
-                                                <div className={`fw-bold mb-1 small text-uppercase ${isAgent ? 'text-white-50' : 'text-primary1 opacity-75'}`} style={{ fontSize: '10px', letterSpacing: '0.05em' }}>
-                                                  {isAgent ? 'AI Agent' : 'Customer'}
-                                                </div>
+                                            <div key={i} className={`mb-3 d-flex ${isAgent ? 'flex-row-reverse' : 'flex-row'}`}>
+                                              <div className={`clt-bubble ${isAgent ? 'clt-bubble--agent' : 'clt-bubble--caller'}`}>
+                                                <div className="clt-bubble-label">{isAgent ? 'AI Agent' : 'Customer'}</div>
                                                 {content}
                                               </div>
                                             </div>
@@ -336,22 +254,18 @@ export default function CallLogTable() {
                                     </div>
                                   )}
                                   {item.summary && (
-                                    <div className="col-lg-5">
-                                      <div className="d-flex align-items-center mb-4">
-                                        <div className="p-2 bg-warning-subtle text-warning rounded-3 me-3"><i className="bi bi-magic"></i></div>
-                                        <h6 className="mb-0 fw-bold">AI Insight Summary</h6>
+                                    <div className={item.recording_text ? 'col-lg-5' : 'col-12'}>
+                                      <div className="d-flex align-items-center gap-2 mb-3">
+                                        <div className="clt-icon-box clt-icon-box--amber"><i className="bi bi-magic"></i></div>
+                                        <h6 className="mb-0 fw-semibold" style={{ fontSize: '14px', color: '#111827' }}>AI Insight Summary</h6>
                                       </div>
-                                      <div className="bg-light bg-opacity-50 p-4 rounded-4" style={{ minHeight: '100px' }}>
-                                        <p className="mb-0 text-secondary" style={{ fontSize: '14px', lineHeight: '1.7' }}>
-                                          {item.summary}
-                                        </p>
+                                      <div className="clt-summary-box">
+                                        <p className="mb-0" style={{ fontSize: '13px', lineHeight: '1.7', color: '#374151' }}>{item.summary}</p>
                                       </div>
                                       {item.customer_sentiment && (
-                                        <div className="mt-4 p-3 rounded-4 border border-light d-flex align-items-center justify-content-between">
-                                          <span className="small fw-bold text-muted text-uppercase">Detected Sentiment</span>
-                                          <span className={`badge px-3 py-2 rounded-pill bg-${item.customer_sentiment.toLowerCase() === 'positive' ? 'success' : 'secondary'}-subtle text-${item.customer_sentiment.toLowerCase() === 'positive' ? 'success' : 'secondary'}`}>
-                                            {item.customer_sentiment}
-                                          </span>
+                                        <div className="clt-sentiment-row">
+                                          <span style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Detected Sentiment</span>
+                                          <span className="clt-badge" style={getSentimentStyle(item.customer_sentiment)}>{item.customer_sentiment}</span>
                                         </div>
                                       )}
                                     </div>
@@ -371,74 +285,55 @@ export default function CallLogTable() {
         </div>
       </div>
 
-      <div className="card-footer bg-white border-0 py-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-3" style={{ borderTop: '1px solid #F3F4F6' }}>
-        <div className="small text-muted font-medium">
-          Showing <span className="text-dark fw-bold">{skip + 1}</span> to <span className="text-dark fw-bold">{Math.min(skip + limit, totalRecords || 0)}</span> of <span className="text-dark fw-bold">{totalRecords || 0}</span> records
-        </div>
-
-        <nav className="d-flex align-items-center gap-4">
+      <div className="clt-footer">
+        <span className="clt-cell">
+          Showing <strong style={{ color: '#111827' }}>{skip + 1}</strong>–<strong style={{ color: '#111827' }}>{Math.min(skip + limit, totalRecords || 0)}</strong> of <strong style={{ color: '#111827' }}>{totalRecords || 0}</strong>
+        </span>
+        <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center gap-2">
-            <span className="small text-muted">Per page:</span>
-            <select
-              className="form-select form-select-sm border-0 fw-bold"
-              style={{ width: 'auto', borderRadius: '8px', backgroundColor: '#F9FAFB', fontSize: '13px' }}
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
-              disabled={isControlsDisabled}
-            >
+            <span className="clt-cell">Per page:</span>
+            <select className="date-filter-select" value={limit} onChange={(e) => setLimit(Number(e.target.value))} disabled={isControlsDisabled}>
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
             </select>
           </div>
-
-          <div className="btn-group gap-1">
-            <button
-              className="btn btn-sm d-flex align-items-center justify-content-center"
-              style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#F9FAFB', border: 'none' }}
-              onClick={() => setSkip(Math.max(0, skip - limit))}
-              disabled={skip === 0}
-            >
-              <i className="bi bi-chevron-left" style={{ fontSize: '12px', color: '#374151' }}></i>
+          <div className="d-flex align-items-center gap-2">
+            <button className="clt-page-btn" onClick={() => setSkip(Math.max(0, skip - limit))} disabled={skip === 0}>
+              <i className="bi bi-chevron-left" style={{ fontSize: '12px' }}></i>
             </button>
-            <div className="px-3 d-flex align-items-center rounded-2" style={{ backgroundColor: '#F9FAFB' }}>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>{currentPage} <span style={{ color: '#9CA3AF', fontWeight: 400, margin: '0 4px' }}>/</span> {totalPages}</span>
-            </div>
-            <button
-              className="btn btn-sm d-flex align-items-center justify-content-center"
-              style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#F9FAFB', border: 'none' }}
-              onClick={() => setSkip(skip + limit)}
-              disabled={skip + limit >= totalRecords}
-            >
-              <i className="bi bi-chevron-right" style={{ fontSize: '12px', color: '#374151' }}></i>
+            <span className="clt-page-indicator">{currentPage} <span style={{ color: '#D1D5DB', margin: '0 2px' }}>/</span> {totalPages}</span>
+            <button className="clt-page-btn" onClick={() => setSkip(skip + limit)} disabled={skip + limit >= totalRecords}>
+              <i className="bi bi-chevron-right" style={{ fontSize: '12px' }}></i>
             </button>
           </div>
-        </nav>
+        </div>
       </div>
     </div>
   );
 }
 
-function getStatusColor(status) {
-  const colors = {
-    contacted: 'primary',
-    converted: 'success',
-    pending: 'warning',
-    closed: 'secondary',
-    open: 'info',
-    resolved: 'success',
-    new: 'primary'
+function getStatusStyle(status) {
+  const styles = {
+    new:         { backgroundColor: '#DBEAFE', color: '#1D4ED8' },
+    in_progress: { backgroundColor: '#FEF3C7', color: '#D97706' },
+    closed:      { backgroundColor: '#F3F4F6', color: '#6B7280' },
+    resolved:    { backgroundColor: '#D1FAE5', color: '#059669' },
+    contacted:   { backgroundColor: '#EDE9FE', color: '#7C3AED' },
+    converted:   { backgroundColor: '#D1FAE5', color: '#059669' },
+    pending:     { backgroundColor: '#FEF3C7', color: '#D97706' },
+    open:        { backgroundColor: '#DBEAFE', color: '#3B82F6' },
   };
-  return colors[status?.toLowerCase()] || 'secondary';
+  return styles[status?.toLowerCase()] || { backgroundColor: '#F3F4F6', color: '#6B7280' };
 }
 
-function getSentimentColor(sentiment) {
-  const colors = {
-    satisfied: 'success',
-    positive: 'success',
-    neutral: 'secondary',
-    negative: 'danger',
-    dissatisfied: 'danger'
+function getSentimentStyle(sentiment) {
+  const styles = {
+    positive:     { backgroundColor: '#D1FAE5', color: '#059669' },
+    satisfied:    { backgroundColor: '#D1FAE5', color: '#059669' },
+    neutral:      { backgroundColor: '#F3F4F6', color: '#6B7280' },
+    negative:     { backgroundColor: '#FEE2E2', color: '#DC2626' },
+    dissatisfied: { backgroundColor: '#FEE2E2', color: '#DC2626' },
   };
-  return colors[sentiment?.toLowerCase()] || 'secondary';
+  return styles[sentiment?.toLowerCase()] || { backgroundColor: '#F3F4F6', color: '#6B7280' };
 }

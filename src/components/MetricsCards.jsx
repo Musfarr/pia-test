@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import ReactECharts from 'echarts-for-react';
 import { getDashboardAnalytics } from '../services/api';
 
@@ -89,10 +90,17 @@ export default function MetricsCards({ startDate, endDate }) {
   return (
     <div className="row g-4">
       {metrics.map((m, i) => (
-        <div key={i} className="col-12 col-sm-6 col-xl-3">
+        <motion.div
+          key={i}
+          className="col-12 col-sm-6 col-xl-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: i * 0.08, ease: [0.23, 1, 0.32, 1] }}
+          whileHover={{ y: -3, transition: { duration: 0.18 } }}
+        >
           <div className="card h-100 metrics-card">
             <div className="card-body metrics-card-body">
-              <div className="metrics-card-header card ">
+              <div className="metrics-card-header ">
                 {/* Row 1: trend icon + label */}
                 <div className="metrics-card-label">
                   <i
@@ -114,7 +122,7 @@ export default function MetricsCards({ startDate, endDate }) {
               <Sparkline data={m.spark} color={m.color} />
             </div>
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   );

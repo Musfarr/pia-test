@@ -135,13 +135,13 @@ export default function CallLogTable() {
                 )}
               </tr>
             </thead>
-            <tbody className="border-top-0">
+            <tbody className="border-top-0 ">
               {isAnyLoading && !displayedRecords?.length ? (
                 <tr>
                   <td colSpan="5" className="text-center py-5">
                     <div className="spinner-border spinner-border-sm me-2" style={{ color: '#173C7C' }} />
                     <span style={{ color: '#9CA3AF', fontSize: '14px' }}>Loading records...</span>
-                  </td>
+         ''         </td>
                 </tr>
               ) : !displayedRecords?.length ? (
                 <tr>

@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthProvider.jsx';
 import { useNavigate } from 'react-router-dom';
 import loginBg from '../assets/bgimg.png';
 import logo from '../assets/logo.svg';
-import loginWaveform from '../assets/portalanm.mp4';
+import loginWaveform from '../assets/panim3.mp4';
 import './Login.css';
 
 

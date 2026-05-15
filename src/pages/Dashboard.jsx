@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
-import FullscreenToggle from '../components/FullscreenToggle';
 
 export default function Dashboard({ onLogout }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -63,6 +62,7 @@ export default function Dashboard({ onLogout }) {
         isMobileOpen={isMobileSidebarOpen}
         onToggle={toggleSidebar}
         onMobileClose={closeMobileSidebar}
+        onLogout={onLogout}
       />
 
       <div className={`dashboard-main ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
@@ -74,7 +74,6 @@ export default function Dashboard({ onLogout }) {
           </div>
         </div>
 
-        <FullscreenToggle />
       </div>
     </div>
   );

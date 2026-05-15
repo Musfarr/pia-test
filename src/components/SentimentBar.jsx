@@ -1,101 +1,68 @@
 import React from 'react';
 import ReactECharts from 'echarts-for-react';
-import { useQuery } from '@tanstack/react-query';
-import { getSentimentDaywise } from '../services/api';
+
+const AI_DATA = [
+  { name: 'Resolved by AI',     value: 30, color: '#376AB3' },
+  { name: 'Escalated to Agent', value: 25, color: '#4FAA94' },
+  { name: 'Web Chat',           value: 20, color: '#86C7B1' },
+  { name: 'Mobile App',         value: 15, color: '#EDC176' },
+  { name: 'SMS',                value: 10, color: '#F1AB8F' },
+];
+
+const CARD_STYLE = {
+  borderRadius: '16px',
+  border: 'none',
+  boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06)',
+};
 
 const SentimentBar = () => {
-    const { data: apiResponse, isLoading } = useQuery({
-        queryKey: ['sentimentDaywise'],
-        queryFn: () => getSentimentDaywise()
-    });
+  const option = {
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {d}%',
+      backgroundColor: '#fff',
+      borderColor: '#E5E7EB',
+      borderWidth: 1,
+      textStyle: { color: '#374151', fontFamily: 'Outfit', fontSize: 12 },
+      borderRadius: 10,
+    },
+    series: [{
+      type: 'pie',
+      radius: ['38%', '95%'],
+      center: ['38%', '50%'],
+      data: AI_DATA.map(d => ({
+        name: d.name,
+        value: d.value,
+        itemStyle: { color: d.color, borderWidth: 1, borderColor: '#fff' },
+      })),
+      label: { show: false },
+      emphasis: { scale: true, scaleSize: 5 },
+    }],
+  };
 
-    console.log(apiResponse , "dddddddd")
-
-    if (isLoading) {
-        return (
-            <div className="card border-0 mb-4 d-flex align-items-center justify-content-center" style={{ borderRadius: 'var(--radius-lg)', height: '300px' }}>
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
+  return (
+    <div className="card h-100" style={CARD_STYLE}>
+      <div className="card-body p-4">
+        <h6 className="mb-4 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>AI Performance</h6>
+        <div className="d-flex align-items-center gap-2">
+          <div style={{ flex: '0 0 52%', height: '260px' }}>
+            <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            {AI_DATA.map(d => (
+              <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
+                <div className="d-flex align-items-center gap-2">
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
+                  <span style={{ color: '#374151', fontSize: '16px' }}>{d.name}:</span>
                 </div>
-            </div>
-        );
-    }
-
-    const rawData = apiResponse?.data.data || [];
-    const dates = rawData.map(item => item.date);
-    const sentimentCategories = ['Happy', 'Satisfied', 'Neutral', 'Confused', 'Frustrated', 'Angry', 'Disappointed'];
-    
-    const sentimentColors = {
-        'Happy': '#7cb342',
-        'Satisfied': '#9ccc65',
-        'Neutral': '#cbd5e1',
-        'Confused': '#ffa726',
-        'Frustrated': '#ef5350',
-        'Angry': '#c62828',
-        'Disappointed': '#455a64'
-    };
-
-    const series = sentimentCategories.map(category => ({
-        name: category,
-        type: 'bar',
-        stack: 'total',
-        emphasis: { focus: 'series' },
-        data: rawData.map(item => item[category] || 0),
-        itemStyle: { color: sentimentColors[category] }
-    }));
-
-    const option = {
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: { type: 'shadow' },
-            backgroundColor: '#fff',
-            borderColor: '#e2e8f0',
-            borderWidth: 1,
-            textStyle: { color: '#475569', fontFamily: 'Outfit' },
-            padding: [8, 12],
-            borderRadius: 8
-        },
-        legend: {
-            data: sentimentCategories,
-            textStyle: { color: '#64748b', fontFamily: 'Outfit', fontSize: 12 },
-            top: '0%',
-            icon: 'circle'
-        },
-        grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            top: '60px',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            data: dates,
-            axisLine: { lineStyle: { color: '#e2e8f0' } },
-            axisLabel: { color: '#64748b', fontFamily: 'Outfit' }
-        },
-        yAxis: {
-            type: 'value',
-            axisLine: { show: false },
-            splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } },
-            axisLabel: { color: '#64748b', fontFamily: 'Outfit' }
-        },
-        series: series
-    };
-
-    return (
-        <div className="card border-0 mb-4" style={{ borderRadius: 'var(--radius-lg)' }}>
-            <div className="card-body p-4">
-                <div className="mb-4">
-                    <h5 className="mb-1 fw-bold">Daily Sentiment Trends</h5>
-                    <p className="text-muted small mb-0">Daily emotional breakdown of customer interactions</p>
-                </div>
-                <div style={{ height: '300px', width: '100%' }}>
-                    <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
-                </div>
-            </div>
+                <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
+              </div>
+            ))}
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default SentimentBar;

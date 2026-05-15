@@ -1,86 +1,122 @@
-import { useQuery } from '@tanstack/react-query'
-import React from 'react'
-import { getTopKeywords } from '../services/api'
+import { useState } from 'react';
+import ReactECharts from 'echarts-for-react';
+
+const SENTIMENT_DATA = [
+  { name: 'Positive',      value: 47.4, color: '#376AB3' },
+  { name: 'Neutral',       value: 35.1, color: '#4FAA94' },
+  { name: 'Negative',      value: 12.1, color: '#86C7B1' },
+  { name: 'Very Negative', value: 5.4,  color: '#EDC176' },
+];
+
+const LLM_SERVICES = [
+  { name: 'LLM Services',        status: 'Operational' },
+  { name: 'LLM Services',        status: 'Operational' },
+  { name: 'LLM Services',        status: 'Operational' },
+  { name: 'LLM Services',        status: 'Operational' },
+  { name: 'LLM Services',        status: 'Operational' },
+  { name: 'LLM Services',        status: 'Operational' },
+  { name: 'LLM Services',        status: 'Operational' },
+];
+
+const CARD_STYLE = {
+  borderRadius: '16px',
+  border: 'none',
+  boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06)',
+};
 
 
+export default function TopKeyWords({ variant = 'sentiment' }) {
+  const [days, setDays] = useState(7);
 
-const TopKeyWords = () => {
-
-
-    const { data: response, isLoading } = useQuery({
-        queryKey: ['topKeywords'],
-        queryFn: getTopKeywords,
-    });
-
-    const data = response?.data?.keyword_cloud || [];
-
-    console.log(data , "data")
-  
-    if (isLoading) {
-        return (
-            <div className="card border-0 mb-4 d-flex align-items-center justify-content-center" style={{ borderRadius: 'var(--radius-lg)', minHeight: '300px' }}>
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        );
-    }
-
+  if (variant === 'status') {
     return (
-        <div className="card border-0 mb-4 shadow-sm overflow-scroll" style={{ borderRadius: 'var(--radius-lg)', minHeight: '418px' , maxHeight: '418px' }}>
-            <div className="card-body p-4">
-                <div className="mb-4">
-                    <h5 className="fw-bold">Top Keywords</h5>
-                    <p className="text-muted small mb-0">High-impact topics from recent calls</p>
+      <div className="card h-100" style={CARD_STYLE}>
+        <div className="card-body p-4">
+          <h6 className="mb-4 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>LLM Services</h6>
+          <div className="d-flex flex-column gap-2">
+            {LLM_SERVICES.map((item, i) => (
+              <div
+                key={i}
+                className="d-flex align-items-center justify-content-between px-3 py-2 rounded-3"
+                style={{ backgroundColor: '#F9FAFB' }}
+              >
+                <div className="d-flex align-items-center gap-2">
+                  <i className="bi bi-check-circle-fill" style={{ color: '#10B981', fontSize: '14px' }} />
+                  <span style={{ color: '#374151', fontSize: '14px', fontWeight: 500 }}>{item.name}</span>
                 </div>
-                <div className="d-flex flex-wrap gap-3">
-                    {Object.entries(data).map(([key, value], index) => (
-                        <div
-                            key={index}
-                            className="p-1 d-flex align-items-center"
-                            style={{
-                                backgroundColor: '#fff',
-                                border: '1px solid #e2e8f0',
-                                borderRadius: '12px',
-                                transition: 'all 0.2s ease',
-                                cursor: 'default',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = '#7cb342';
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 179, 66, 0.15)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = '#e2e8f0';
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.02)';
-                            }}
-                        >
-                            <div
-                                className="px-3 py-2 fw-semibold text-dark"
-                                style={{ fontSize: '14px', letterSpacing: '-0.01em' }}
-                            >
-                                {key.toLowerCase()}
-                            </div>
-                            <div
-                                className="me-1 px-2 py-1 rounded-3 fw-bold"
-                                style={{
-                                    backgroundColor: '#f1f8e9',
-                                    color: '#7cb342',
-                                    fontSize: '12px',
-                                    minWidth: '32px',
-                                    textAlign: 'center'
-                                }}
-                            >
-                                {value}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+                <span className="fw-semibold" style={{ color: '#10B981', fontSize: '13px' }}>{item.status}</span>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
     );
-}
+  }
 
-export default TopKeyWords
+  const option = {
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {d}%',
+      backgroundColor: '#fff',
+      borderColor: '#E5E7EB',
+      borderWidth: 1,
+      textStyle: { color: '#374151', fontFamily: 'Outfit', fontSize: 12 },
+      borderRadius: 10,
+    },
+    series: [{
+      type: 'pie',
+      radius: ['38%', '95%'],
+      center: ['38%', '50%'],
+      data: SENTIMENT_DATA.map(d => ({
+        name: d.name,
+        value: d.value,
+        itemStyle: { color: d.color, borderWidth: 1, borderColor: '#fff' },
+      })),
+      label: { show: false },
+      emphasis: { scale: true, scaleSize: 5 },
+    }],
+  };
+
+  return (
+    <div className="card h-100" style={CARD_STYLE}>
+      <div className="card-body p-4">
+        <div className="d-flex align-items-center justify-content-between mb-4">
+          <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>Sentiment Analytics</h6>
+          <select
+            className="date-filter-select"
+            value={days}
+            onChange={e => setDays(Number(e.target.value))}
+          >
+            <option value={7}>7 Days</option>
+            <option value={15}>15 Days</option>
+            <option value={30}>30 Days</option>
+          </select>
+        </div>
+        <div className="d-flex align-items-center gap-2">
+          <div style={{ flex: '0 0 52%', height: '240px', position: 'relative' }}>
+            <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+            <div style={{
+              position: 'absolute', top: '48%', left: '38%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center', pointerEvents: 'none',
+            }}>
+              <div style={{ color: '#9CA3AF', fontSize: '11px', lineHeight: 1.4 }}>Total</div>
+              <div style={{ color: '#111827', fontSize: '18px', fontWeight: 700, lineHeight: 1.2 }}>18,020</div>
+            </div>
+          </div>
+          <div style={{ flex: 1 }}>
+            {SENTIMENT_DATA.map(d => (
+              <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
+                <div className="d-flex align-items-center gap-2">
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
+                  <span style={{ color: '#374151', fontSize: '16px' }}>{d.name}</span>
+                </div>
+                <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

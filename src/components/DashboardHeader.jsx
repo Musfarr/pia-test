@@ -1,10 +1,25 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthProvider';
 
 export default function DashboardHeader({ onLogout, onMobileMenuClick }) {
-  const { user } = useAuth();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   return (
-    <header className="dashboard-header ">
+    <header className="dashboard-header">
       <div className="d-flex align-items-center gap-3">
         <button
           className="btn-icon d-lg-none"
@@ -19,27 +34,21 @@ export default function DashboardHeader({ onLogout, onMobileMenuClick }) {
         <h3>Overview</h3>
         <p>Real-time overview of your AI conversational platform</p>
         </div>
-        {/* You could add a title or breadcrumbs here if needed */}
       </div>
 
-      <div className="d-flex align-items-center gap-4">
-        <div className="user-info d-flex align-items-center gap-3 pe-3 border-end">
-          <div className="user-avatar">
-            <img
-              src={`https://ui-avatars.com/api/?name=${user?.company_name || 'User'}&background=4f46e5&color=fff&bold=true`}
-              alt="User"
-              className="shadow-sm"
-              style={{ borderRadius: '10px', width: '38px', height: '38px' }}
-            />
-          </div>
-          <div className="user-details d-none d-md-block text-end">
-            <h6 className="mb-0 fw-bold" style={{ fontSize: '0.85rem' }}>{user?.company_name || 'Administrator'}</h6>
-            <small className="text-muted" style={{ fontSize: '0.75rem' }}>{user?.user_email || 'System Access'}</small>
-          </div>
-        </div>
-
-        <button className="btn-icon" onClick={onLogout} title="Sign Out">
-          <i className="bi bi-box-arrow-right" style={{ fontSize: '1.2rem' }}></i>
+      <div className="d-flex align-items-center gap-2">
+        <button className="header-icon-btn" title="Notifications">
+          <i className="bi bi-bell" style={{ fontSize: '1.1rem' }}></i>
+        </button>
+        <button
+          className="header-icon-btn header-icon-btn--primary"
+          onClick={toggleFullscreen}
+          title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        >
+          <i className={`bi ${isFullscreen ? 'bi-fullscreen-exit' : 'bi-fullscreen'}`} style={{ fontSize: '1.1rem' }}></i>
+        </button>
+        <button className="header-icon-btn" onClick={onLogout} title="Sign Out">
+          <i className="bi bi-box-arrow-right" style={{ fontSize: '1.1rem' }}></i>
         </button>
       </div>
     </header>

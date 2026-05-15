@@ -64,19 +64,20 @@ export default function CallLogTable() {
   };
 
   return (
-    <div className="card border-0 call-log-table" style={{ borderRadius: 'var(--radius-lg)' }}>
-      <div className="card-header bg-white py-4 border-bottom-0 mx-2">
-        <div className="d-flex flex-wrap align-items-center justify-content-between gap-4">
+    <div className="card call-log-table" >
+      <div className="  py-4 px-4">
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div>
-            <h4 className="mb-1 fw-bold text-dark">Recent Inquiries</h4>
-            <p className="text-muted small mb-0">Manage and track all customer communications</p>
+            <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Recent Inquiries</h6>
+            <p className="mb-0 mt-1" style={{ color: '#6B7280', fontSize: '12px' }}>Manage and track all customer communications</p>
           </div>
 
           <div className="d-flex align-items-center gap-3">
-            <div className="btn-group" role="tablist">
+            <div className="d-flex gap-1 p-1 rounded-3" style={{ backgroundColor: '#F3F4F6' }}>
               <button
                 type="button"
-                className={`btn btn-sm ${!isOrphanTab ? 'btn-primary1 text-white' : 'btn-light text-muted'}`}
+                className="btn btn-sm fw-medium"
+                style={!isOrphanTab ? { backgroundColor: '#fff', color: '#111827', borderRadius: '8px', fontSize: '13px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' } : { background: 'none', color: '#6B7280', fontSize: '13px', border: 'none' }}
                 onClick={() => handleTabChange('user')}
                 disabled={isControlsDisabled}
               >
@@ -84,7 +85,8 @@ export default function CallLogTable() {
               </button>
               <button
                 type="button"
-                className={`btn btn-sm ${isOrphanTab ? 'btn-primary1 text-white' : 'btn-light text-muted'}`}
+                className="btn btn-sm fw-medium"
+                style={isOrphanTab ? { backgroundColor: '#fff', color: '#111827', borderRadius: '8px', fontSize: '13px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' } : { background: 'none', color: '#6B7280', fontSize: '13px', border: 'none' }}
                 onClick={() => handleTabChange('orphan')}
                 disabled={isControlsDisabled}
               >
@@ -96,8 +98,8 @@ export default function CallLogTable() {
               <>
                 <div className="d-flex gap-2">
                   <select
-                    className="form-select form-select-sm border-0 bg-light px-3 py-2"
-                    style={{ borderRadius: 'var(--radius-md)', width: 'auto', minWidth: '140px' }}
+                    className="form-select form-select-sm border-0"
+                    style={{ borderRadius: '8px', backgroundColor: '#F9FAFB', width: 'auto', minWidth: '130px', fontSize: '13px', color: '#374151' }}
                     value={filters.status}
                     onChange={(e) => handleFilterChange('status', e.target.value)}
                     disabled={isControlsDisabled}
@@ -111,8 +113,8 @@ export default function CallLogTable() {
                   </select>
 
                   <select
-                    className="form-select form-select-sm border-0 bg-light px-3 py-2"
-                    style={{ borderRadius: 'var(--radius-md)', width: 'auto', minWidth: '140px' }}
+                    className="form-select form-select-sm border-0"
+                    style={{ borderRadius: '8px', backgroundColor: '#F9FAFB', width: 'auto', minWidth: '130px', fontSize: '13px', color: '#374151' }}
                     value={filters.city_name}
                     onChange={(e) => handleFilterChange('city_name', e.target.value)}
                     disabled={isControlsDisabled}
@@ -126,7 +128,7 @@ export default function CallLogTable() {
                   </select>
                 </div>
 
-                <button className="btn btn-sm btn-link text-decoration-none text-primary1 fw-semibold" onClick={clearFilters} disabled={isControlsDisabled}>
+                <button className="btn btn-sm text-decoration-none fw-semibold" style={{ color: '#2DD4BF', fontSize: '13px' }} onClick={clearFilters} disabled={isControlsDisabled}>
                   Reset Filters
                 </button>
               </>
@@ -139,22 +141,22 @@ export default function CallLogTable() {
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
             <thead>
-              <tr style={{ backgroundColor: 'var(--bg-accent)' }}>
+              <tr style={{ backgroundColor: '#F9FAFB' }}>
                 {isOrphanTab ? (
                   <>
-                    <th className="ps-4 border-0 py-3 text-uppercase small fw-bold text-muted" style={{ letterSpacing: '0.05em' }}>Caller Info</th>
-                    <th className="border-0 py-3 text-uppercase small fw-bold text-muted text-center" style={{ letterSpacing: '0.05em' }}>Duration</th>
-                    <th className="border-0 py-3 text-uppercase small fw-bold text-muted text-center" style={{ letterSpacing: '0.05em' }}>Sentiment</th>
-                    <th className="border-0 py-3 text-uppercase small fw-bold text-muted text-center" style={{ letterSpacing: '0.05em' }}>Date & Time</th>
-                    <th className="pe-4 border-0 py-3 text-uppercase small fw-bold text-muted text-center" style={{ letterSpacing: '0.05em' }}>Actions</th>
+                    <th className="ps-4 border-0 py-3 text-uppercase fw-semibold" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Caller Info</th>
+                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Duration</th>
+                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Sentiment</th>
+                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Date & Time</th>
+                    <th className="pe-4 border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Actions</th>
                   </>
                 ) : (
                   <>
-                    <th className="ps-4 border-0 py-3 text-uppercase small fw-bold text-muted" style={{ letterSpacing: '0.05em' }}>Customer Info</th>
-                    <th className="border-0 py-3 text-uppercase small fw-bold text-muted text-center" style={{ letterSpacing: '0.05em' }}>Location</th>
-                    <th className="border-0 py-3 text-uppercase small fw-bold text-muted text-center" style={{ letterSpacing: '0.05em' }}>Status</th>
-                    <th className="border-0 py-3 text-uppercase small fw-bold text-muted text-center" style={{ letterSpacing: '0.05em' }}>Date & Time</th>
-                    <th className="pe-4 border-0 py-3 text-uppercase small fw-bold text-muted text-center" style={{ letterSpacing: '0.05em' }}>Actions</th>
+                    <th className="ps-4 border-0 py-3 text-uppercase fw-semibold" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Customer Info</th>
+                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Location</th>
+                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Status</th>
+                    <th className="border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Date & Time</th>
+                    <th className="pe-4 border-0 py-3 text-uppercase fw-semibold text-center" style={{ letterSpacing: '0.06em', fontSize: '11px', color: '#9CA3AF' }}>Actions</th>
                   </>
                 )}
               </tr>
@@ -369,7 +371,7 @@ export default function CallLogTable() {
         </div>
       </div>
 
-      <div className="card-footer bg-white py-4 border-top-0 d-flex flex-wrap align-items-center justify-content-between gap-4 mx-2">
+      <div className="card-footer bg-white border-0 py-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-3" style={{ borderTop: '1px solid #F3F4F6' }}>
         <div className="small text-muted font-medium">
           Showing <span className="text-dark fw-bold">{skip + 1}</span> to <span className="text-dark fw-bold">{Math.min(skip + limit, totalRecords || 0)}</span> of <span className="text-dark fw-bold">{totalRecords || 0}</span> records
         </div>
@@ -378,8 +380,8 @@ export default function CallLogTable() {
           <div className="d-flex align-items-center gap-2">
             <span className="small text-muted">Per page:</span>
             <select
-              className="form-select form-select-sm border-0 bg-light fw-bold"
-              style={{ width: 'auto', borderRadius: 'var(--radius-sm)' }}
+              className="form-select form-select-sm border-0 fw-bold"
+              style={{ width: 'auto', borderRadius: '8px', backgroundColor: '#F9FAFB', fontSize: '13px' }}
               value={limit}
               onChange={(e) => setLimit(Number(e.target.value))}
               disabled={isControlsDisabled}
@@ -392,23 +394,23 @@ export default function CallLogTable() {
 
           <div className="btn-group gap-1">
             <button
-              className="btn btn-sm btn-light border-0 rounded-start-circle d-flex align-items-center justify-content-center"
-              style={{ width: '32px', height: '32px' }}
+              className="btn btn-sm d-flex align-items-center justify-content-center"
+              style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#F9FAFB', border: 'none' }}
               onClick={() => setSkip(Math.max(0, skip - limit))}
               disabled={skip === 0}
             >
-              <i className="bi bi-chevron-left"></i>
+              <i className="bi bi-chevron-left" style={{ fontSize: '12px', color: '#374151' }}></i>
             </button>
-            <div className="px-3 d-flex align-items-center bg-light rounded-2">
-              <span className="small fw-bold text-dark">{currentPage} <span className="text-muted fw-normal mx-1">/</span> {totalPages}</span>
+            <div className="px-3 d-flex align-items-center rounded-2" style={{ backgroundColor: '#F9FAFB' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>{currentPage} <span style={{ color: '#9CA3AF', fontWeight: 400, margin: '0 4px' }}>/</span> {totalPages}</span>
             </div>
             <button
-              className="btn btn-sm btn-light border-0 rounded-end-circle d-flex align-items-center justify-content-center"
-              style={{ width: '32px', height: '32px' }}
+              className="btn btn-sm d-flex align-items-center justify-content-center"
+              style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#F9FAFB', border: 'none' }}
               onClick={() => setSkip(skip + limit)}
               disabled={skip + limit >= totalRecords}
             >
-              <i className="bi bi-chevron-right"></i>
+              <i className="bi bi-chevron-right" style={{ fontSize: '12px', color: '#374151' }}></i>
             </button>
           </div>
         </nav>

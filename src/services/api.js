@@ -21,13 +21,67 @@ export const login = async (email, password) => {
 };
 
 
-// Dashboard Analytics
-export const getDashboardAnalytics = async (startDate, endDate) => {
+// Dashboard Analytics (old - commented out)
+// export const getDashboardAnalytics = async (startDate, endDate) => {
+//   const params = {};
+//   if (startDate) params.start_date = startDate;
+//   if (endDate) params.end_date = endDate;
+//   params.company_name = "Telenor";
+//   const response = await api.get('dashboard/analytics/stats', { params });
+//   return response.data;
+// };
+
+// Dashboard Stats (New Dashboard Design)
+export const getDashboardStats = async (startDate, endDate) => {
   const params = {};
   if (startDate) params.start_date = startDate;
   if (endDate) params.end_date = endDate;
-  params.company_name = "Telenor"
-  const response = await api.get('dashboard/analytics/stats', { params });
+  const response = await api.get('v2/dashboard/stats', { params });
+  return response.data;
+};
+
+// Resolution Rate (New Dashboard Design)
+export const getResolutionRate = async (startDate, endDate) => {
+  const params = {};
+  if (startDate) params.start_date = startDate;
+  if (endDate) params.end_date = endDate;
+  const response = await api.get('v2/dashboard/resolution-rate', { params });
+  return response.data;
+};
+
+// Top Intents (New Dashboard Design)
+export const getTopIntents = async (startDate, endDate, limit = 8) => {
+  const params = { limit };
+  if (startDate) params.start_date = startDate;
+  if (endDate) params.end_date = endDate;
+  const response = await api.get('v2/dashboard/top-intents', { params });
+  return response.data;
+};
+
+// AI Performance (New Dashboard Design)
+export const getAIPerformance = async (startDate, endDate) => {
+  const params = {};
+  if (startDate) params.start_date = startDate;
+  if (endDate) params.end_date = endDate;
+  const response = await api.get('v2/dashboard/ai-performance', { params });
+  return response.data;
+};
+
+// Channel Distribution (New Dashboard Design)
+export const getChannelDistribution = async (startDate, endDate) => {
+  const params = {};
+  if (startDate) params.start_date = startDate;
+  if (endDate) params.end_date = endDate;
+  const response = await api.get('v2/dashboard/channel-distribution', { params });
+  return response.data;
+};
+
+// Conversations Trend (New Dashboard Design)
+export const getConversationsTrend = async (startDate, endDate) => {
+  const params = {};
+  if (startDate) params.start_date = startDate;
+  if (endDate) params.end_date = endDate;
+  const response = await api.get('v2/dashboard/conversations-trend', { params });
   return response.data;
 };
 

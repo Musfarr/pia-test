@@ -1,17 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import ReactECharts from 'echarts-for-react';
-import { getDashboardAnalytics } from '../services/api';
+import { getDashboardStats } from '../services/api';
 
 
-const SPARK = {
-  conversations: [65, 72, 68, 80, 75, 88, 92, 85, 95, 100, 108, 120],
-  calls:         [90, 85, 78, 80, 72, 68, 65, 70, 62, 58, 55, 60],
-  digital:       [80, 82, 79, 85, 83, 80, 78, 82, 79, 77, 75, 78],
-  resolution:    [60, 65, 70, 72, 75, 78, 80, 82, 85, 88, 90, 92],
-};
+const FALLBACK_SPARK = [0];
 
-const PALETTE = ['#376AB3', '#4FAA94', '#86C7B1', '#EDC176'];
+const PALETTE = ['#376AB3', '#4FAA94', '#86C7B1', '#EDC176', '#A78BFA'];
 
 function Sparkline({ data, color }) {
   const option = {
@@ -41,10 +36,16 @@ function Sparkline({ data, color }) {
   );
 }
 
+function formatChange(pct) {
+  if (pct == null) return null;
+  const sign = pct >= 0 ? '+' : '';
+  return `${sign}${pct}%`;
+}
+
 export default function MetricsCards({ startDate, endDate }) {
   const { data: response, isLoading } = useQuery({
-    queryKey: ['dashboardAnalytics', startDate, endDate],
-    queryFn: () => getDashboardAnalytics(startDate, endDate),
+    queryKey: ['dashboardStats', startDate, endDate],
+    queryFn: () => getDashboardStats(startDate, endDate),
   });
 
   const data = response?.data;
@@ -52,39 +53,45 @@ export default function MetricsCards({ startDate, endDate }) {
   const metrics = [
     {
       label: 'Total Conversations',
-      value: data?.total_calls ?? '128,746',
-      change: '+10%',
-      positive: true,
-      spark: SPARK.conversations,
+      value: data?.total_conversations?.value ?? '—',
+      change: formatChange(data?.total_conversations?.change_percent),
+      positive: (data?.total_conversations?.change_percent ?? 0) >= 0,
+      spark: data?.total_conversations?.sparkline?.length ? data.total_conversations.sparkline : FALLBACK_SPARK,
       color: PALETTE[0],
     },
     {
-      label: 'Calls Handled (voice)',
-      value: data?.resolved_queries ?? '45,762',
-      change: '-8%',
-      positive: false,
-      spark: SPARK.calls,
+      label: 'Calls Handled (Voice)',
+      value: data?.calls_handled_voice?.value ?? '—',
+      change: formatChange(data?.calls_handled_voice?.change_percent),
+      positive: (data?.calls_handled_voice?.change_percent ?? 0) >= 0,
+      spark: data?.calls_handled_voice?.sparkline?.length ? data.calls_handled_voice.sparkline : FALLBACK_SPARK,
       color: PALETTE[1],
     },
     {
-      label: 'Digital Interactions',
-      value: data?.closed_queries ?? '83,074',
-      change: '-1.4%',
-      positive: false,
-      spark: SPARK.digital,
+      label: 'Calls Handled (WebRTC)',
+      value: data?.calls_handled_webrtc?.value ?? '—',
+      change: formatChange(data?.calls_handled_webrtc?.change_percent),
+      positive: (data?.calls_handled_webrtc?.change_percent ?? 0) >= 0,
+      spark: data?.calls_handled_webrtc?.sparkline?.length ? data.calls_handled_webrtc.sparkline : FALLBACK_SPARK,
       color: PALETTE[2],
     },
     {
-      label: 'Avg. Resolutions Time',
-      value: data?.avg_call_duration ? data.avg_call_duration.toFixed(2) + 'm' : '02:48',
-      change: '+10%',
-      positive: true,
-      spark: SPARK.resolution,
+      label: 'Avg. Resolution Time',
+      value: data?.avg_resolution_time?.value ?? '—',
+      change: formatChange(data?.avg_resolution_time?.change_percent),
+      positive: (data?.avg_resolution_time?.change_percent ?? 0) >= 0,
+      spark: data?.avg_resolution_time?.sparkline?.length ? data.avg_resolution_time.sparkline : FALLBACK_SPARK,
       color: PALETTE[3],
     },
+    {
+      label: 'Total Minutes',
+      value: data?.total_minutes?.value != null ? data.total_minutes.value.toFixed(1) : '—',
+      change: formatChange(data?.total_minutes?.change_percent),
+      positive: (data?.total_minutes?.change_percent ?? 0) >= 0,
+      spark: data?.total_minutes?.sparkline?.length ? data.total_minutes.sparkline : FALLBACK_SPARK,
+      color: PALETTE[4],
+    },
   ];
-
-  /* Name */
 
 
   return (
@@ -92,7 +99,7 @@ export default function MetricsCards({ startDate, endDate }) {
       {metrics.map((m, i) => (
         <motion.div
           key={i}
-          className="col-12 col-sm-6 col-xl-3"
+          className="col-12 col-sm-6 col-xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: i * 0.08, ease: [0.23, 1, 0.32, 1] }}

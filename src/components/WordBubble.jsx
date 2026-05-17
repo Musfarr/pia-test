@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
+import { getChannelDistribution } from '../services/api';
 
-const CHANNEL_DATA = [
-  { name: 'Voice Calls', value: 30, color: '#376AB3', icon: 'bi-telephone' },
-  { name: 'WhatsApp',    value: 25, color: '#4FAA94', icon: 'bi-whatsapp' },
-  { name: 'Web Chat',    value: 20, color: '#86C7B1', icon: 'bi-globe2' },
-  { name: 'Mobile App',  value: 15, color: '#EDC176', icon: 'bi-phone' },
-  { name: 'SMS',         value: 10, color: '#F1AB8F', icon: 'bi-chat-left-text' },
-];
+const CHANNEL_PALETTE = ['#376AB3', '#86C7B1', '#4FAA94', '#EDC176', '#F1AB8F', '#A78BFA'];
+
+const CHANNEL_META = {
+  gsm:    { icon: 'bi-telephone' },
+  webrtc: { icon: 'bi-globe2' },
+};
+
+function getDateRange(days) {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - days + 1);
+  const fmt = d => d.toISOString().slice(0, 10);
+  return { startDate: fmt(start), endDate: fmt(end) };
+}
 
 const CARD_STYLE = {
   borderRadius: '16px',
@@ -16,10 +25,28 @@ const CARD_STYLE = {
 };
 
 const WordBubble = () => {
+  const [days, setDays] = useState(30);
+  const { startDate, endDate } = useMemo(() => getDateRange(days), [days]);
+
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['channelDistribution', startDate, endDate],
+    queryFn: () => getChannelDistribution(startDate, endDate),
+  });
+
+  const distribution = response?.data?.distribution ?? [];
+
+  const chartData = distribution.map((d, i) => ({
+    name: d.label ?? d.channel,
+    value: d.percentage ?? 0,
+    count: d.count ?? 0,
+    color: CHANNEL_PALETTE[i % CHANNEL_PALETTE.length],
+    icon: CHANNEL_META[d.channel]?.icon ?? 'bi-broadcast',
+  }));
+
   const option = {
     tooltip: {
       trigger: 'item',
-      formatter: '{b}: {d}%',
+      formatter: (p) => `${p.name}: ${p.value}%`,
       backgroundColor: '#fff',
       borderColor: '#E5E7EB',
       borderWidth: 1,
@@ -30,7 +57,7 @@ const WordBubble = () => {
       type: 'pie',
       radius: ['38%', '95%'],
       center: ['38%', '50%'],
-      data: CHANNEL_DATA.map(d => ({
+      data: chartData.map(d => ({
         name: d.name,
         value: d.value,
         itemStyle: { color: d.color, borderWidth: 1, borderColor: '#fff' },
@@ -43,23 +70,40 @@ const WordBubble = () => {
   return (
     <div className="card h-100" style={CARD_STYLE}>
       <div className="card-body p-4">
-        <h6 className="mb-4 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>Channel Distribution</h6>
-        <div className="d-flex align-items-center gap-2">
-          <div style={{ flex: '0 0 52%', height: '260px' }}>
-            <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            {CHANNEL_DATA.map(d => (
-              <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
-                <div className="d-flex align-items-center gap-2">
-                  <i className={`bi ${d.icon}`} style={{ color: '#9CA3AF', fontSize: '16px', width: '16px' }} />
-                  <span style={{ color: '#374151', fontSize: '16px' }}>{d.name}:</span>
-                </div>
-                <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
-              </div>
-            ))}
-          </div>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>Channel Distribution</h6>
+          <select
+            className="date-filter-select"
+            value={days}
+            onChange={e => setDays(Number(e.target.value))}
+          >
+            <option value={7}>7 Days</option>
+            <option value={15}>15 Days</option>
+            <option value={30}>30 Days</option>
+          </select>
         </div>
+        {isLoading ? (
+          <div className="d-flex align-items-center justify-content-center" style={{ height: '260px' }}>
+            <span className="spinner-border spinner-border-sm text-secondary" />
+          </div>
+        ) : (
+          <div className="d-flex align-items-center gap-2">
+            <div style={{ flex: '0 0 52%', height: '260px' }}>
+              <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              {chartData.map(d => (
+                <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
+                  <div className="d-flex align-items-center gap-2">
+                    <i className={`bi ${d.icon}`} style={{ color: '#9CA3AF', fontSize: '16px', width: '16px' }} />
+                    <span style={{ color: '#374151', fontSize: '16px' }}>{d.name}:</span>
+                  </div>
+                  <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

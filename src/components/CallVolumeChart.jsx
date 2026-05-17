@@ -1,20 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
+import { getConversationsTrend } from '../services/api';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'];
-
-const STATIC_DATA = {
-  voiceCalls: [50, 88, 155, 248, 348, 458, 592, 748, 908, 1108, 1358, 1820],
-  whatsapp:   [50, 82, 134, 218, 308, 408, 518, 658, 798, 958, 1108, 1480],
-  web:        [50, 72, 114, 178, 254, 336, 428, 528, 628, 758, 888, 1150],
-  other:      [50, 62, 88, 124, 168, 224, 288, 364, 434, 514, 594, 748],
-};
-
-const SERIES = [
-  { name: 'Voice Calls', key: 'voiceCalls', color: '#1B3A7A' },
-  { name: 'WhatsApp',    key: 'whatsapp',   color: '#2DD4BF' },
-  { name: 'Web',         key: 'web',        color: '#60A5FA' },
-  { name: 'Other Channels', key: 'other',   color: '#FBBF24' },
+const SERIES_CONFIG = [
+  { name: 'Voice Calls', key: 'voice_calls', color: '#1B3A7A' },
+  { name: 'Web',         key: 'web',         color: '#60A5FA' },
+  { name: 'Total',       key: 'total',       color: '#2DD4BF' },
 ];
 
 const CARD_STYLE = {
@@ -23,8 +15,27 @@ const CARD_STYLE = {
   boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06)',
 };
 
+function getDateRange(days) {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - days + 1);
+  const fmt = d => d.toISOString().slice(0, 10);
+  return { startDate: fmt(start), endDate: fmt(end) };
+}
+
 export default function CallVolumeChart() {
-  const [days, setDays] = useState(7);
+  const [days, setDays] = useState(30);
+
+  const { startDate, endDate } = useMemo(() => getDateRange(days), [days]);
+
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['conversationsTrend', startDate, endDate],
+    queryFn: () => getConversationsTrend(startDate, endDate),
+  });
+
+  const apiData = response?.data;
+  const labels = apiData?.labels ?? [];
+  const datasets = apiData?.datasets ?? {};
 
   const option = {
     backgroundColor: 'transparent',
@@ -39,7 +50,7 @@ export default function CallVolumeChart() {
       borderRadius: 10,
     },
     legend: {
-      data: SERIES.map(s => s.name),
+      data: SERIES_CONFIG.map(s => s.name),
       bottom: 0,
       icon: 'circle',
       itemWidth: 8,
@@ -50,26 +61,24 @@ export default function CallVolumeChart() {
     grid: { left: 0, right: 0, top: 16, bottom: 44, containLabel: true },
     xAxis: {
       type: 'category',
-      data: MONTHS,
+      data: labels,
       axisLine: { show: true },
       axisTick: { show: true },
       splitLine: { show: true },
-      axisLabel: { color: '#9CA3AF', fontSize: 14, fontFamily: 'Outfit' },
+      axisLabel: { color: '#9CA3AF', fontSize: 12, fontFamily: 'Outfit', rotate: labels.length > 10 ? 30 : 0 },
     },
     yAxis: {
       type: 'value',
-      min: 50,
-      max: 1820,
       splitNumber: 5,
       splitLine: { lineStyle: { color: '#F3F4F6', type: 'dashed' } },
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: { color: '#9CA3AF', fontSize: 14, fontFamily: 'Outfit' },
     },
-    series: SERIES.map(s => ({
+    series: SERIES_CONFIG.map(s => ({
       name: s.name,
       type: 'line',
-      data: STATIC_DATA[s.key],
+      data: datasets?.[s.key] ?? [],
       smooth: true,
       symbol: 'circle',
       symbolSize: 6,
@@ -99,8 +108,15 @@ export default function CallVolumeChart() {
             <option value={30}>30 Days</option>
           </select>
         </div>
-        <div style={{ height: '300px', width: '100%' }}>
-          <ReactECharts option={option} style={{ height: '100%', width: '100%' }} settings={{ notMerge: true }} />
+        <div style={{ height: '300px', width: '100%', position: 'relative' }}>
+          {isLoading && (
+            <div className="d-flex align-items-center justify-content-center h-100">
+              <span className="spinner-border spinner-border-sm text-secondary" />
+            </div>
+          )}
+          {!isLoading && (
+            <ReactECharts option={option} style={{ height: '100%', width: '100%' }} settings={{ notMerge: true }} />
+          )}
         </div>
       </div>
     </div>

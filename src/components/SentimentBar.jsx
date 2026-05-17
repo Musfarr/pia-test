@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
+import { getAIPerformance } from '../services/api';
 
-const AI_DATA = [
-  { name: 'Resolved by AI',     value: 30, color: '#376AB3' },
-  { name: 'Escalated to Agent', value: 25, color: '#4FAA94' },
-  { name: 'Web Chat',           value: 20, color: '#86C7B1' },
-  { name: 'Mobile App',         value: 15, color: '#EDC176' },
-  { name: 'SMS',                value: 10, color: '#F1AB8F' },
+const AI_SERIES = [
+  { key: 'resolved_by_ai',    label: 'Resolved by AI',     color: '#376AB3' },
+  { key: 'escalated_to_agent', label: 'Escalated to Agent', color: '#4FAA94' },
+  { key: 'other',             label: 'Other',              color: '#86C7B1' },
 ];
+
+function getDateRange(days) {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - days + 1);
+  const fmt = d => d.toISOString().slice(0, 10);
+  return { startDate: fmt(start), endDate: fmt(end) };
+}
 
 const CARD_STYLE = {
   borderRadius: '16px',
@@ -16,10 +24,26 @@ const CARD_STYLE = {
 };
 
 const SentimentBar = () => {
+  const [days, setDays] = useState(30);
+  const { startDate, endDate } = useMemo(() => getDateRange(days), [days]);
+
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['aiPerformance', startDate, endDate],
+    queryFn: () => getAIPerformance(startDate, endDate),
+  });
+
+  const apiData = response?.data;
+
+  const chartData = AI_SERIES.map(s => ({
+    ...s,
+    value: apiData?.[s.key]?.percentage ?? 0,
+    count: apiData?.[s.key]?.count ?? 0,
+  }));
+
   const option = {
     tooltip: {
       trigger: 'item',
-      formatter: '{b}: {d}%',
+      formatter: (p) => `${p.name}: ${p.value}%`,
       backgroundColor: '#fff',
       borderColor: '#E5E7EB',
       borderWidth: 1,
@@ -30,8 +54,8 @@ const SentimentBar = () => {
       type: 'pie',
       radius: ['38%', '95%'],
       center: ['38%', '50%'],
-      data: AI_DATA.map(d => ({
-        name: d.name,
+      data: chartData.map(d => ({
+        name: d.label,
         value: d.value,
         itemStyle: { color: d.color, borderWidth: 1, borderColor: '#fff' },
       })),
@@ -43,23 +67,40 @@ const SentimentBar = () => {
   return (
     <div className="card h-100" style={CARD_STYLE}>
       <div className="card-body p-4">
-        <h6 className="mb-4 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>AI Performance</h6>
-        <div className="d-flex align-items-center gap-2">
-          <div style={{ flex: '0 0 52%', height: '260px' }}>
-            <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            {AI_DATA.map(d => (
-              <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
-                <div className="d-flex align-items-center gap-2">
-                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
-                  <span style={{ color: '#374151', fontSize: '16px' }}>{d.name}:</span>
-                </div>
-                <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
-              </div>
-            ))}
-          </div>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>AI Performance</h6>
+          <select
+            className="date-filter-select"
+            value={days}
+            onChange={e => setDays(Number(e.target.value))}
+          >
+            <option value={7}>7 Days</option>
+            <option value={15}>15 Days</option>
+            <option value={30}>30 Days</option>
+          </select>
         </div>
+        {isLoading ? (
+          <div className="d-flex align-items-center justify-content-center" style={{ height: '260px' }}>
+            <span className="spinner-border spinner-border-sm text-secondary" />
+          </div>
+        ) : (
+          <div className="d-flex align-items-center gap-2">
+            <div style={{ flex: '0 0 52%', height: '260px' }}>
+              <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              {chartData.map(d => (
+                <div key={d.key} className="d-flex align-items-center justify-content-between mb-3">
+                  <div className="d-flex align-items-center gap-2">
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
+                    <span style={{ color: '#374151', fontSize: '16px' }}>{d.label}:</span>
+                  </div>
+                  <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

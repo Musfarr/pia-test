@@ -37,9 +37,9 @@ export default function DashboardHeader({ onLogout, onMobileMenuClick }) {
       </div>
 
       <div className="d-flex align-items-center gap-2">
-        <button className="header-icon-btn" title="Notifications">
+        {/* <button className="header-icon-btn" title="Notifications">
           <i className="bi bi-bell" style={{ fontSize: '1.1rem' }}></i>
-        </button>
+        </button> */}
         <button
           className="header-icon-btn header-icon-btn--primary"
           onClick={toggleFullscreen}

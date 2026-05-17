@@ -5,8 +5,9 @@ import {
   Track,
   createLocalAudioTrack,
 } from 'livekit-client';
-import { createSession, AGENT_BASE_URL } from '../services/api';
+import { createSession } from '../services/api';
 import api from '../services/api';
+import './LiveDemo.css';
 
 export default function LiveDemo() {
   const roomRef = useRef(null);
@@ -16,6 +17,7 @@ export default function LiveDemo() {
   const [isJoining, setIsJoining] = useState(false);
   const [joined, setJoined] = useState(false);
   const [error, setError] = useState(null);
+  const [showLogs, setShowLogs] = useState(false);
 
   const appendLog = (message) => {
     setLogs((prev) => [message, ...prev].slice(0, 30));
@@ -118,7 +120,7 @@ export default function LiveDemo() {
 
       roomRef.current = room;
 
-      appendLog('🔌 Attempting to connect to LiveKit room...');
+      appendLog('🔌 Attempting to connect to room...');
       const connectPromise = room.connect(data.livekit_url, data.access_token, {
         autoSubscribe: true,
         rtcConfig: {
@@ -181,96 +183,106 @@ export default function LiveDemo() {
     }
   };
 
+  const statusLabel = joined
+    ? 'Live with agent'
+    : isJoining
+      ? 'Connecting…'
+      : 'Ready to call';
+
+  const statusClass = joined
+    ? 'call-status call-status--live'
+    : isJoining
+      ? 'call-status call-status--joining'
+      : 'call-status';
+
+  const micClass = joined
+    ? 'mic-visual mic-visual--live'
+    : isJoining
+      ? 'mic-visual mic-visual--joining'
+      : 'mic-visual';
+
   return (
-    <div className="container">
-      <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+    <div className="call-stage">
+      <div className="call-card">
+        <h4 className="call-card__title">Voice Agent</h4>
+        <p className="call-card__subtitle">Tap to start a conversation</p>
+
+        <span className={statusClass}>
+          <span className="call-status__dot" />
+          {statusLabel}
+        </span>
+
+        <div className={micClass}>
+          <span className="mic-ring" />
+          <span className="mic-ring" />
+          <span className="mic-ring" />
+          <span className="mic-ring" />
+          <div className="mic-orb">
+            <i className={`bi ${joined ? 'bi-mic-fill' : 'bi-mic'}`} />
+          </div>
+        </div>
+
+        <div className={`wave-bars ${joined ? 'wave-bars--live' : ''}`}>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <span key={i} className="wave-bar" />
+          ))}
+        </div>
+
         <div>
-          <h4 className="mb-1">Live Voice Demo</h4>
-          <small className="text-muted">Talk to a live calling agent</small>
+          {!joined ? (
+            <button
+              className="call-btn call-btn--start"
+              onClick={joinRoom}
+              disabled={isJoining}
+              aria-label="Start call"
+              title="Start call"
+            >
+              <i className="bi bi-telephone-fill" />
+            </button>
+          ) : (
+            <button
+              className="call-btn call-btn--end"
+              onClick={() => leaveRoom()}
+              aria-label="End call"
+              title="End call"
+            >
+              <i className="bi bi-telephone-x-fill" />
+            </button>
+          )}
+          <span className="call-btn-label">
+            {joined ? 'End Call' : isJoining ? 'Joining…' : 'Start Call'}
+          </span>
         </div>
-        {/* <span className="badge bg-light text-dark px-3 py-2">{status}</span> */}
+
+        {error && <div className="call-error">{error}</div>}
+
+        <button
+          className="log-toggle"
+          onClick={() => setShowLogs((v) => !v)}
+          type="button"
+        >
+          <i className={`bi bi-chevron-${showLogs ? 'up' : 'down'}`} />
+          {showLogs ? 'Hide activity' : 'Show activity'}
+        </button>
       </div>
 
-      <div className="row g-4">
-        <div className="col-12 col-lg-6">
-          <div className="card shadow-sm h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                {/* <div>
-                  <h5 className="card-title mb-1">Call Controls</h5>
-                  <p className="text-muted mb-3">
-                    Requests a token from your server at <code>{AGENT_BASE_URL}sessions/create</code>, then connects and publishes your microphone.
-                  </p>
-                </div> */}
-                {/* <span className={`badge ${joined ? 'bg-success' : 'bg-secondary'} px-3 py-2`} aria-label="Call state badge">
-                  {joined ? 'In Call' : 'Not in Call'}
-                </span> */}
-              </div>
-
-              {error && (
-                <div className="alert alert-danger py-2 px-3" role="alert">
-                  {error}
-                </div>
-              )}
-
-              <div className="d-flex gap-2 mb-3">
-                <button className="btn btn-dark" onClick={joinRoom} disabled={isJoining || joined} aria-label="Join LiveKit room">
-                  {isJoining ? 'Joining...' : 'Join Call'}
-                </button>
-                <button
-                  className="btn btn-outline-secondary"
-                  onClick={() => leaveRoom()}
-                  disabled={!joined}
-                  aria-label="Leave LiveKit room"
-                >
-                  End Call
-                </button>
-              </div>
-
-              <div className="p-3 border rounded bg-light">
-                <div className="d-flex align-items-center gap-2 mb-2">
-                  <span className="status-dot" style={{ backgroundColor: joined ? '#7cb342' : '#e57373' }} />
-                  <strong className="small mb-0">{joined ? 'Live with agent' : 'Waiting to join'}</strong>
-                </div>
-                <p className="mb-0 text-muted small">Ensure your microphone is allowed. Remote audio tracks will appear below and auto-play.</p>
-              </div>
-
-              <div className="mt-3">
-                <h6 className="mb-2">Remote Audio</h6>
-                <div
-                  ref={remoteAudioContainerRef}
-                  className="d-flex flex-column gap-2 p-3 border rounded bg-white"
-                  style={{ minHeight: 80 }}
-                >
-                  <span className="text-muted small">Remote participant audio will show here.</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      {showLogs && (
+        <div className="log-panel">
+          <div className="log-panel__title">Activity</div>
+          {logs.length === 0 ? (
+            <div className="log-empty">No activity yet</div>
+          ) : (
+            <ul className="log-list">
+              {logs.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          )}
         </div>
+      )}
 
-        <div className="col-12 col-lg-6">
-          <div className="card shadow-sm h-100">
-            <div className="card-body">
-              <h5 className="card-title mb-3">Activity Log</h5>
-              <div className="border rounded bg-light p-3" style={{ minHeight: 200, maxHeight: 360, overflowY: 'auto' }}>
-                {logs.length === 0 ? (
-                  <p className="text-muted mb-0">No activity yet. Join the call to see events.</p>
-                ) : (
-                  <ul className="list-unstyled mb-0">
-                    {logs.map((item, idx) => (
-                      <li key={idx} className="mb-2 d-flex align-items-start gap-2">
-                        <span className="badge bg-dark-subtle text-dark-emphasis">•</span>
-                        <span className="small">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Hidden but functional remote audio sink */}
+      <div ref={remoteAudioContainerRef} className="remote-audio-hidden" aria-hidden="true" />
     </div>
   );
 }

@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
+import { getSentimentAnalytics } from '../services/api';
 
-const SENTIMENT_DATA = [
-  { name: 'Positive',      value: 47.4, color: '#376AB3' },
-  { name: 'Neutral',       value: 35.1, color: '#4FAA94' },
-  { name: 'Negative',      value: 12.1, color: '#86C7B1' },
-  { name: 'Very Negative', value: 5.4,  color: '#EDC176' },
-];
+const SENTIMENT_PALETTE = ['#376AB3', '#4FAA94', '#86C7B1', '#EDC176', '#A78BFA', '#F97316', '#14B8A6', '#FB7185'];
+
+function getDateRange(days) {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - days + 1);
+  const fmt = d => d.toISOString().slice(0, 10);
+  return { startDate: fmt(start), endDate: fmt(end) };
+}
 
 const LLM_SERVICES = [
   { name: 'LLM Services',        status: 'Operational' },
@@ -27,6 +32,23 @@ const CARD_STYLE = {
 
 export default function TopKeyWords({ variant = 'sentiment' }) {
   const [days, setDays] = useState(7);
+  const { startDate, endDate } = useMemo(() => getDateRange(days), [days]);
+
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['sentimentAnalytics', startDate, endDate],
+    queryFn: () => getSentimentAnalytics(startDate, endDate),
+    enabled: variant === 'sentiment',
+  });
+
+  const apiData = response?.data;
+  const total = apiData?.total ?? 0;
+
+  const sentimentData = (apiData?.distribution ?? []).map((d, i) => ({
+    name: d.sentiment ?? '—',
+    value: d.percentage ?? 0,
+    count: d.count ?? 0,
+    color: SENTIMENT_PALETTE[i % SENTIMENT_PALETTE.length],
+  }));
 
   if (variant === 'status') {
     return (
@@ -67,7 +89,7 @@ export default function TopKeyWords({ variant = 'sentiment' }) {
       type: 'pie',
       radius: ['38%', '95%'],
       center: ['38%', '50%'],
-      data: SENTIMENT_DATA.map(d => ({
+      data: sentimentData.map(d => ({
         name: d.name,
         value: d.value,
         itemStyle: { color: d.color, borderWidth: 1, borderColor: '#fff' },
@@ -92,30 +114,36 @@ export default function TopKeyWords({ variant = 'sentiment' }) {
             <option value={30}>30 Days</option>
           </select>
         </div>
-        <div className="d-flex align-items-center gap-2">
-          <div style={{ flex: '0 0 52%', height: '240px', position: 'relative' }}>
-            <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
-            <div style={{
-              position: 'absolute', top: '48%', left: '38%',
-              transform: 'translate(-50%, -50%)',
-              textAlign: 'center', pointerEvents: 'none',
-            }}>
-              <div style={{ color: '#9CA3AF', fontSize: '11px', lineHeight: 1.4 }}>Total</div>
-              <div style={{ color: '#111827', fontSize: '18px', fontWeight: 700, lineHeight: 1.2 }}>18,020</div>
+        {isLoading ? (
+          <div className="d-flex align-items-center justify-content-center" style={{ height: '240px' }}>
+            <span className="spinner-border spinner-border-sm text-secondary" />
+          </div>
+        ) : (
+          <div className="d-flex align-items-center gap-2">
+            <div style={{ flex: '0 0 52%', height: '240px', position: 'relative' }}>
+              <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+              <div style={{
+                position: 'absolute', top: '48%', left: '38%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center', pointerEvents: 'none',
+              }}>
+                <div style={{ color: '#9CA3AF', fontSize: '11px', lineHeight: 1.4 }}>Total</div>
+                <div style={{ color: '#111827', fontSize: '18px', fontWeight: 700, lineHeight: 1.2 }}>{total.toLocaleString()}</div>
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              {sentimentData.map(d => (
+                <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
+                  <div className="d-flex align-items-center gap-2">
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
+                    <span style={{ color: '#374151', fontSize: '16px' }}>{d.name}</span>
+                  </div>
+                  <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div style={{ flex: 1 }}>
-            {SENTIMENT_DATA.map(d => (
-              <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
-                <div className="d-flex align-items-center gap-2">
-                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
-                  <span style={{ color: '#374151', fontSize: '16px' }}>{d.name}</span>
-                </div>
-                <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -556,6 +556,40 @@ body {
 .clt-reset-btn:hover { background: #EEF4FF; }
 .clt-reset-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.clt-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.clt-search-icon {
+  position: absolute;
+  left: 10px;
+  color: #9CA3AF;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.clt-search-input {
+  height: 34px;
+  padding: 0 12px 0 30px;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  background: rgba(255,255,255,0.7);
+  font-size: 13px;
+  color: #374151;
+  width: 220px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.clt-search-input:focus {
+  border-color: #173C7C;
+  box-shadow: 0 0 0 3px rgba(23,60,124,0.08);
+}
+
+.clt-search-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .clt-thead-row { background-color: #F9FAFB; }
 
 .clt-th {

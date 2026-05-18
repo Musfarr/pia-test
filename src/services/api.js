@@ -58,6 +58,15 @@ export const getTopIntents = async (startDate, endDate, limit = 8) => {
   return response.data;
 };
 
+// Sentiment Analytics (New Dashboard Design)
+export const getSentimentAnalytics = async (startDate, endDate) => {
+  const params = {};
+  if (startDate) params.start_date = startDate;
+  if (endDate) params.end_date = endDate;
+  const response = await api.get('v2/dashboard/sentiment-analytics', { params });
+  return response.data;
+};
+
 // AI Performance (New Dashboard Design)
 export const getAIPerformance = async (startDate, endDate) => {
   const params = {};
@@ -122,6 +131,17 @@ export const getIssues = async ({ status, industry_type, organization, limit = 1
   if (industry_type) params.industry_type = industry_type;
   if (organization) params.organization = organization;
   const response = await api.get('dashboard/issues', { params });
+  return response.data;
+};
+
+// Conversations (New Dashboard Design)
+export const getConversations = async ({ start_date, end_date, channel = '', search = '', page = 1, limit = 10 } = {}) => {
+  const params = { page, limit };
+  if (start_date) params.start_date = start_date;
+  if (end_date) params.end_date = end_date;
+  if (channel) params.channel = channel;
+  if (search) params.search = search;
+  const response = await api.get('v2/dashboard/conversations', { params });
   return response.data;
 };
 

@@ -53,7 +53,7 @@ const SentimentBar = () => {
     series: [{
       type: 'pie',
       radius: ['38%', '95%'],
-      center: ['38%', '50%'],
+      center: ['50%', '50%'],
       data: chartData.map(d => ({
         name: d.label,
         value: d.value,
@@ -80,22 +80,22 @@ const SentimentBar = () => {
           </select>
         </div>
         {isLoading ? (
-          <div className="d-flex align-items-center justify-content-center" style={{ height: '260px' }}>
+          <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '220px' }}>
             <span className="spinner-border spinner-border-sm text-secondary" />
           </div>
         ) : (
-          <div className="d-flex align-items-center gap-2">
-            <div style={{ flex: '0 0 52%', height: '260px' }}>
-              <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+          <div className="d-flex align-items-center gap-2" style={{ flex: 1, minHeight: '200px' }}>
+            <div style={{ flex: '0 0 52%', alignSelf: 'stretch', minHeight: '200px' }}>
+              <ReactECharts option={option} style={{ height: '100%', width: '100%', minHeight: '200px' }} />
             </div>
             <div style={{ flex: 1 }}>
               {chartData.map(d => (
                 <div key={d.key} className="d-flex align-items-center justify-content-between mb-3">
                   <div className="d-flex align-items-center gap-2">
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
-                    <span style={{ color: '#374151', fontSize: '16px' }}>{d.label}:</span>
+                    <span style={{ color: '#374151', fontSize: 'clamp(12px, 0.9vw, 15px)' }}>{d.label}:</span>
                   </div>
-                  <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
+                  <span className="fw-medium" style={{ color: '#111827', fontSize: 'clamp(12px, 0.9vw, 15px)' }}>{d.value}%</span>
                 </div>
               ))}
             </div>

@@ -108,7 +108,7 @@ export default function CallVolumeChart() {
             <option value={30}>30 Days</option>
           </select>
         </div>
-        <div style={{ height: '300px', width: '100%', position: 'relative' }}>
+        <div style={{ minHeight: '280px', height: '280px', width: '100%', position: 'relative' }}>
           {isLoading && (
             <div className="d-flex align-items-center justify-content-center h-100">
               <span className="spinner-border spinner-border-sm text-secondary" />

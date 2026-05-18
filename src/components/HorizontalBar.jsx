@@ -109,11 +109,11 @@ export default function HorizontalBar({ variant = 'intents' }) {
             </select>
           </div>
           {gaugeLoading ? (
-            <div className="d-flex align-items-center justify-content-center" style={{ height: '210px' }}>
+            <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '180px' }}>
               <span className="spinner-border spinner-border-sm text-secondary" />
             </div>
           ) : (
-            <div style={{ height: '210px' }}>
+            <div style={{ minHeight: '180px', height: '180px' }}>
               <ReactECharts option={gaugeOption} style={{ height: '100%', width: '100%' }} />
             </div>
           )}
@@ -160,7 +160,7 @@ export default function HorizontalBar({ variant = 'intents' }) {
           </select>
         </div>
         {intentsLoading ? (
-          <div className="d-flex align-items-center justify-content-center" style={{ height: '200px' }}>
+          <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '200px' }}>
             <span className="spinner-border spinner-border-sm text-secondary" />
           </div>
         ) : (
@@ -171,7 +171,7 @@ export default function HorizontalBar({ variant = 'intents' }) {
                   style={{ width: '32px', height: '32px', backgroundColor: item.bg }}>
                   <i className="bi bi-chat-dots" style={{ color: item.ic, fontSize: '14px' }} />
                 </div>
-                <span style={{ color: '#374151', fontSize: '16px', fontWeight: 500, minWidth: '120px' }}>{item.name}</span>
+                <span style={{ color: '#374151', fontSize: 'clamp(12px, 0.9vw, 15px)', fontWeight: 500, minWidth: '100px' }}>{item.name}</span>
                 <div style={{ flex: 1, height: '12px', backgroundColor: '#E5E7EB', borderRadius: '10px', overflow: 'hidden' }}>
                   <div style={{
                     height: '100%',

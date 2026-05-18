@@ -22,14 +22,20 @@ body {
 
 /* Dashboard Layout */
 .dashboard-wrapper {
-  padding: 55px;
+  padding: 40px;
   display: flex;
   min-height: 100vh;
 }
 
+@media (min-width: 1600px) {
+  .dashboard-wrapper {
+    padding: 55px;
+  }
+}
+
 /* Sidebar */
 .sidebar {
-  margin: 55px 55px 0px;
+  margin: 40px 40px 0px;
   position: fixed;
   left: 0;
   top: 0;
@@ -235,10 +241,19 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 55px;
+    padding: 0 40px;
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+@media (min-width: 1600px) {
+  .dashboard-header {
+    padding: 0 55px;
+  }
+  .sidebar {
+    margin: 55px 55px 0px;
+  }
 }
 
 .user-avatar img {
@@ -888,6 +903,22 @@ body {
   transform: none !important;
 }
 
+/* Chart cards: flex column so chart area fills card height at any zoom */
+.card.h-100 {
+  display: flex;
+  flex-direction: column;
+}
+.card.h-100 > .card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.card.h-100 > .card-body > .d-flex.align-items-center.gap-2 {
+  flex: 1;
+  min-height: 0;
+}
+
 /* Metrics Cards */
 .metrics-card {
   border-radius: 16px;
@@ -902,7 +933,7 @@ body {
 .metrics-card-header {
   border: none;
   padding-top: 8px;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
   padding-left: 16px;
   padding-right: 16px;
   margin-bottom: 16px;
@@ -927,7 +958,7 @@ body {
 }
 
 .metrics-card-label-icon {
-  font-size: 24px;
+  font-size: clamp(18px, 1.35vw, 24px);
 }
 
 .metrics-card-label-icon.positive {
@@ -940,7 +971,7 @@ body {
 
 .metrics-card-label-text {
   color: #374151;
-  font-size: 18px;
+  font-size: clamp(13px, 1vw, 18px);
   font-weight: 400;
 }
 
@@ -953,17 +984,17 @@ body {
 
 .metrics-card-value-number {
   font-weight: 500;
-  font-size: 26px;
+  font-size: clamp(18px, 1.5vw, 26px);
   color: #111827;
   letter-spacing: -0.5px;
   line-height: 1;
 }
 
 .metrics-card-badge {
-  padding: 4px 8px;
+  padding: 3px 7px;
   border-radius: 9999px;
   font-weight: 600;
-  font-size: 11px;
+  font-size: clamp(9px, 0.65vw, 11px);
   color: #fff;
 }
 

@@ -99,7 +99,7 @@ export default function MetricsCards({ startDate, endDate }) {
       {metrics.map((m, i) => (
         <motion.div
           key={i}
-          className="col-sm-6 col-xl"
+          className="col-sm-6 col-lg-4 col-xxl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: i * 0.08, ease: [0.23, 1, 0.32, 1] }}

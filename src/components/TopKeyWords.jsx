@@ -88,7 +88,7 @@ export default function TopKeyWords({ variant = 'sentiment' }) {
     series: [{
       type: 'pie',
       radius: ['38%', '95%'],
-      center: ['38%', '50%'],
+      center: ['50%', '50%'],
       data: sentimentData.map(d => ({
         name: d.name,
         value: d.value,
@@ -115,15 +115,15 @@ export default function TopKeyWords({ variant = 'sentiment' }) {
           </select>
         </div>
         {isLoading ? (
-          <div className="d-flex align-items-center justify-content-center" style={{ height: '240px' }}>
+          <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '220px' }}>
             <span className="spinner-border spinner-border-sm text-secondary" />
           </div>
         ) : (
-          <div className="d-flex align-items-center gap-2">
-            <div style={{ flex: '0 0 52%', height: '240px', position: 'relative' }}>
-              <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+          <div className="d-flex align-items-center gap-2" style={{ flex: 1, minHeight: '200px' }}>
+            <div style={{ flex: '0 0 52%', alignSelf: 'stretch', minHeight: '200px', position: 'relative' }}>
+              <ReactECharts option={option} style={{ height: '100%', width: '100%', minHeight: '200px' }} />
               <div style={{
-                position: 'absolute', top: '48%', left: '38%',
+                position: 'absolute', top: '48%', left: '50%',
                 transform: 'translate(-50%, -50%)',
                 textAlign: 'center', pointerEvents: 'none',
               }}>
@@ -136,9 +136,9 @@ export default function TopKeyWords({ variant = 'sentiment' }) {
                 <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
                   <div className="d-flex align-items-center gap-2">
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
-                    <span style={{ color: '#374151', fontSize: '16px' }}>{d.name}</span>
+                    <span style={{ color: '#374151', fontSize: 'clamp(11px, 0.85vw, 15px)' }}>{d.name}</span>
                   </div>
-                  <span className="fw-medium" style={{ color: '#111827', fontSize: '16px' }}>{d.value}%</span>
+                  <span className="fw-medium" style={{ color: '#111827', fontSize: 'clamp(11px, 0.85vw, 15px)' }}>{d.value}%</span>
                 </div>
               ))}
             </div>

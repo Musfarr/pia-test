@@ -35,10 +35,10 @@ export default function DashboardHome() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
       >
-        <motion.div className="col-12 col-xl-6" variants={colItem}>
+        <motion.div className="col-12 col-xxl-6" variants={colItem}>
           <CallVolumeChart />
         </motion.div>
-        <motion.div className="col-12 col-xl-6" variants={colItem}>
+        <motion.div className="col-12 col-xxl-6" variants={colItem}>
           <WordBubble />
         </motion.div>
       </motion.div>
@@ -51,10 +51,10 @@ export default function DashboardHome() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
       >
-        <motion.div className="col-12 col-xl-6" variants={colItem}>
+        <motion.div className="col-12 col-xxl-6" variants={colItem}>
           <SentimentBar />
         </motion.div>
-        <motion.div className="col-12 col-xl-6" variants={colItem}>
+        <motion.div className="col-12 col-xxl-6" variants={colItem}>
           <TopKeyWords variant="sentiment" />
         </motion.div>
       </motion.div>
@@ -67,10 +67,10 @@ export default function DashboardHome() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
       >
-        <motion.div className="col-12 col-lg-6" variants={colItem}>
+        <motion.div className="col-12 col-xxl-6" variants={colItem}>
           <HorizontalBar variant="intents" />
         </motion.div>
-        <motion.div className="col-12 col-lg-6" variants={colItem}>
+        <motion.div className="col-12 col-xxl-6" variants={colItem}>
           <HorizontalBar variant="gauge" />
         </motion.div>
       </motion.div>

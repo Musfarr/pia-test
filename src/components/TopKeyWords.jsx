@@ -1,17 +1,9 @@
-import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
 import { getSentimentAnalytics } from '../services/api';
+import { useDateRange } from '../context/DateRangeContext';
 
 const SENTIMENT_PALETTE = ['#376AB3', '#4FAA94', '#86C7B1', '#EDC176', '#A78BFA', '#F97316', '#14B8A6', '#FB7185'];
-
-function getDateRange(days) {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - days + 1);
-  const fmt = d => d.toISOString().slice(0, 10);
-  return { startDate: fmt(start), endDate: fmt(end) };
-}
 
 const LLM_SERVICES = [
   { name: 'LLM Services',        status: 'Operational' },
@@ -31,8 +23,7 @@ const CARD_STYLE = {
 
 
 export default function TopKeyWords({ variant = 'sentiment' }) {
-  const [days, setDays] = useState(7);
-  const { startDate, endDate } = useMemo(() => getDateRange(days), [days]);
+  const { startDate, endDate } = useDateRange();
 
   const { data: response, isLoading } = useQuery({
     queryKey: ['sentimentAnalytics', startDate, endDate],
@@ -104,15 +95,6 @@ export default function TopKeyWords({ variant = 'sentiment' }) {
       <div className="card-body p-4">
         <div className="d-flex align-items-center justify-content-between mb-4">
           <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>Sentiment Analytics</h6>
-          <select
-            className="date-filter-select"
-            value={days}
-            onChange={e => setDays(Number(e.target.value))}
-          >
-            <option value={7}>7 Days</option>
-            <option value={15}>15 Days</option>
-            <option value={30}>30 Days</option>
-          </select>
         </div>
         {isLoading ? (
           <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '220px' }}>

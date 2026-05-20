@@ -1,17 +1,22 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getConversations } from '../services/api';
+import { useDateRange } from '../context/DateRangeContext';
 
 export default function CallLogTable() {
+  const { startDate, endDate } = useDateRange();
   const [expandedRow, setExpandedRow] = useState(null);
   const [playingRow, setPlayingRow] = useState(null);
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ channel: '', search: '', start_date: '', end_date: '' });
+  const [filters, setFilters] = useState({ channel: '', search: '' });
   const searchTimerRef = useRef(null);
   const [searchInput, setSearchInput] = useState('');
 
-  const queryParams = useMemo(() => ({ ...filters, page, limit }), [filters, page, limit]);
+  const queryParams = useMemo(
+    () => ({ ...filters, start_date: startDate, end_date: endDate, page, limit }),
+    [filters, startDate, endDate, page, limit]
+  );
 
   const { data: response, isLoading } = useQuery({
     queryKey: ['conversations', queryParams],
@@ -27,7 +32,7 @@ export default function CallLogTable() {
     setPage(1);
     setExpandedRow(null);
     setPlayingRow(null);
-  }, [filters, limit]);
+  }, [filters, limit, startDate, endDate]);
 
   const toggleTranscript = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
@@ -53,7 +58,7 @@ export default function CallLogTable() {
   };
 
   const clearFilters = () => {
-    setFilters({ channel: '', search: '', start_date: '', end_date: '' });
+    setFilters({ channel: '', search: '' });
     setSearchInput('');
   };
 
@@ -86,8 +91,6 @@ export default function CallLogTable() {
             <option value="gsm">GSM</option>
             {/* <option value="voice">Voice</option> */}
           </select>
-          <input type="date" className="date-filter-select" value={filters.start_date} onChange={(e) => handleFilterChange('start_date', e.target.value)} disabled={isLoading} style={{ cursor: 'pointer' }} />
-          <input type="date" className="date-filter-select" value={filters.end_date} onChange={(e) => handleFilterChange('end_date', e.target.value)} disabled={isLoading} style={{ cursor: 'pointer' }} />
           <button className="clt-reset-btn" onClick={clearFilters} disabled={isLoading}>
             <i className="bi bi-x-circle"></i> Reset
           </button>

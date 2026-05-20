@@ -1,21 +1,13 @@
-import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
 import { getAIPerformance } from '../services/api';
+import { useDateRange } from '../context/DateRangeContext';
 
 const AI_SERIES = [
   { key: 'resolved_by_ai',    label: 'Resolved by AI',     color: '#376AB3' },
   { key: 'escalated_to_agent', label: 'Escalated to Agent', color: '#4FAA94' },
   { key: 'other',             label: 'Other',              color: '#86C7B1' },
 ];
-
-function getDateRange(days) {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - days + 1);
-  const fmt = d => d.toISOString().slice(0, 10);
-  return { startDate: fmt(start), endDate: fmt(end) };
-}
 
 const CARD_STYLE = {
   borderRadius: '16px',
@@ -24,8 +16,7 @@ const CARD_STYLE = {
 };
 
 const SentimentBar = () => {
-  const [days, setDays] = useState(30);
-  const { startDate, endDate } = useMemo(() => getDateRange(days), [days]);
+  const { startDate, endDate } = useDateRange();
 
   const { data: response, isLoading } = useQuery({
     queryKey: ['aiPerformance', startDate, endDate],
@@ -69,15 +60,6 @@ const SentimentBar = () => {
       <div className="card-body p-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>AI Performance</h6>
-          <select
-            className="date-filter-select"
-            value={days}
-            onChange={e => setDays(Number(e.target.value))}
-          >
-            <option value={7}>7 Days</option>
-            <option value={15}>15 Days</option>
-            <option value={30}>30 Days</option>
-          </select>
         </div>
         {isLoading ? (
           <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '220px' }}>

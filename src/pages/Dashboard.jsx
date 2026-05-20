@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
+import { DateRangeProvider } from '../context/DateRangeContext';
 
 export default function Dashboard({ onLogout }) {
   const location = useLocation();
@@ -58,6 +59,7 @@ export default function Dashboard({ onLogout }) {
 
 
   return (
+    <DateRangeProvider>
     <div className="dashboard-wrapper">
       <Sidebar
         isCollapsed={isSidebarCollapsed}
@@ -86,5 +88,6 @@ export default function Dashboard({ onLogout }) {
 
       </div>
     </div>
+    </DateRangeProvider>
   );
 }

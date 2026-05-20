@@ -368,6 +368,64 @@ body {
   filter: blur(0.3px);
 }
 
+/* Header Date Range Picker */
+.header-date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  padding: 6px 12px;
+  box-shadow:
+    0 8px 16px -4px rgba(0,0,0,0.08),
+    inset 0 -2px 4px -1px rgba(0,0,0,0.06),
+    0 -4px 8px -1px rgba(255,255,255,0.7),
+    inset 0 2px 4px -1px rgba(255,255,255,0.5);
+}
+
+.header-date-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.header-date-icon {
+  position: absolute;
+  left: 8px;
+  font-size: 12px;
+  color: #9CA3AF;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.header-date-input {
+  height: 32px;
+  padding: 0 8px 0 26px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.8);
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  font-family: var(--font-main, 'Outfit', sans-serif);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 138px;
+}
+
+.header-date-input:focus {
+  border-color: #173C7C;
+  box-shadow: 0 0 0 3px rgba(23,60,124,0.1);
+}
+
+.header-date-sep {
+  font-size: 13px;
+  color: #9CA3AF;
+  font-weight: 500;
+  user-select: none;
+}
+
 /* Sidebar User Wrap + Logout */
 .sidebar-user-wrap {
   margin: 0 16px 20px;

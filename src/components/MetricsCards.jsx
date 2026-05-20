@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import ReactECharts from 'echarts-for-react';
 import { getDashboardStats } from '../services/api';
+import { useDateRange } from '../context/DateRangeContext';
 
 
 const FALLBACK_SPARK = [0];
@@ -42,7 +43,8 @@ function formatChange(pct) {
   return `${sign}${pct}%`;
 }
 
-export default function MetricsCards({ startDate, endDate }) {
+export default function MetricsCards() {
+  const { startDate, endDate } = useDateRange();
   const { data: response, isLoading } = useQuery({
     queryKey: ['dashboardStats', startDate, endDate],
     queryFn: () => getDashboardStats(startDate, endDate),

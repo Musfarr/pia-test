@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
 import { getTopIntents, getResolutionRate } from '../services/api';
+import { useDateRange } from '../context/DateRangeContext';
 
 const INTENT_PALETTE = [
   { bg: '#D1FAE5', ic: '#059669' },
@@ -14,14 +14,6 @@ const INTENT_PALETTE = [
   { bg: '#F3F4F6', ic: '#6B7280' },
 ];
 
-function getDateRange(days) {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - days + 1);
-  const fmt = d => d.toISOString().slice(0, 10);
-  return { startDate: fmt(start), endDate: fmt(end) };
-}
-
 const CARD_STYLE = {
   borderRadius: '16px',
   border: 'none',
@@ -30,8 +22,7 @@ const CARD_STYLE = {
 
 
 export default function HorizontalBar({ variant = 'intents' }) {
-  const [days, setDays] = useState(7);
-  const { startDate, endDate } = useMemo(() => getDateRange(days), [days]);
+  const { startDate, endDate } = useDateRange();
 
   const { data: response, isLoading: intentsLoading } = useQuery({
     queryKey: ['topIntents', startDate, endDate],
@@ -102,11 +93,7 @@ export default function HorizontalBar({ variant = 'intents' }) {
       <div className="card h-100" style={CARD_STYLE}>
         <div className="card-body p-4">
           <div className="d-flex align-items-center justify-content-between mb-1">
-            <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Sentiment Analytics</h6>
-            <select className="date-filter-select" value={days} onChange={e => setDays(Number(e.target.value))}>
-              <option value={7}>7 Days</option>
-              <option value={30}>30 Days</option>
-            </select>
+            <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Resolution Rate</h6>
           </div>
           {gaugeLoading ? (
             <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '180px' }}>
@@ -154,10 +141,6 @@ export default function HorizontalBar({ variant = 'intents' }) {
       <div className="card-body p-4">
         <div className="d-flex align-items-center justify-content-between mb-4">
           <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Top Intents</h6>
-          <select className="date-filter-select" value={days} onChange={e => setDays(Number(e.target.value))}>
-            <option value={7}>7 Days</option>
-            <option value={30}>30 Days</option>
-          </select>
         </div>
         {intentsLoading ? (
           <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '200px' }}>

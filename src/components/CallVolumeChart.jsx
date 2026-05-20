@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
 import { getConversationsTrend } from '../services/api';
+import { useDateRange } from '../context/DateRangeContext';
 
 const SERIES_CONFIG = [
   { name: 'Voice Calls', key: 'voice_calls', color: '#1B3A7A' },
@@ -15,18 +15,8 @@ const CARD_STYLE = {
   boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06)',
 };
 
-function getDateRange(days) {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - days + 1);
-  const fmt = d => d.toISOString().slice(0, 10);
-  return { startDate: fmt(start), endDate: fmt(end) };
-}
-
 export default function CallVolumeChart() {
-  const [days, setDays] = useState(30);
-
-  const { startDate, endDate } = useMemo(() => getDateRange(days), [days]);
+  const { startDate, endDate } = useDateRange();
 
   const { data: response, isLoading } = useQuery({
     queryKey: ['conversationsTrend', startDate, endDate],
@@ -98,15 +88,6 @@ export default function CallVolumeChart() {
       <div className="card-body p-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>Conversations Trend</h6>
-          <select
-            className="date-filter-select"
-            value={days}
-            onChange={e => setDays(Number(e.target.value))}
-          >
-            <option value={7}>7 Days</option>
-            <option value={15}>15 Days</option>
-            <option value={30}>30 Days</option>
-          </select>
         </div>
         <div style={{ minHeight: '280px', height: '280px', width: '100%', position: 'relative' }}>
           {isLoading && (

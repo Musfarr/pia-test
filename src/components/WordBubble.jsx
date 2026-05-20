@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
 import { getChannelDistribution } from '../services/api';
+import { useDateRange } from '../context/DateRangeContext';
 
 const CHANNEL_PALETTE = ['#376AB3', '#86C7B1', '#4FAA94', '#EDC176', '#F1AB8F', '#A78BFA'];
 
@@ -10,14 +10,6 @@ const CHANNEL_META = {
   webrtc: { icon: 'bi-globe2' },
 };
 
-function getDateRange(days) {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - days + 1);
-  const fmt = d => d.toISOString().slice(0, 10);
-  return { startDate: fmt(start), endDate: fmt(end) };
-}
-
 const CARD_STYLE = {
   borderRadius: '16px',
   border: 'none',
@@ -25,8 +17,7 @@ const CARD_STYLE = {
 };
 
 const WordBubble = () => {
-  const [days, setDays] = useState(30);
-  const { startDate, endDate } = useMemo(() => getDateRange(days), [days]);
+  const { startDate, endDate } = useDateRange();
 
   const { data: response, isLoading } = useQuery({
     queryKey: ['channelDistribution', startDate, endDate],
@@ -72,15 +63,6 @@ const WordBubble = () => {
       <div className="card-body p-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>Channel Distribution</h6>
-          <select
-            className="date-filter-select"
-            value={days}
-            onChange={e => setDays(Number(e.target.value))}
-          >
-            <option value={7}>7 Days</option>
-            <option value={15}>15 Days</option>
-            <option value={30}>30 Days</option>
-          </select>
         </div>
         {isLoading ? (
           <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '220px' }}>

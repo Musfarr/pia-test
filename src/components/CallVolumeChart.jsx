@@ -23,9 +23,13 @@ export default function CallVolumeChart() {
     queryFn: () => getConversationsTrend(startDate, endDate),
   });
 
-  const apiData = response?.data;
-  const labels = apiData?.labels ?? [];
-  const datasets = apiData?.datasets ?? {};
+  const trend = response?.data?.trend ?? [];
+  const labels = trend.map(d => d.date);
+  const datasets = {
+    voice_calls: trend.map(d => d.voice_calls),
+    web: trend.map(d => d.web),
+    total: trend.map(d => d.total),
+  };
 
   const option = {
     backgroundColor: 'transparent',

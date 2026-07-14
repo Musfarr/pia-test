@@ -85,7 +85,7 @@
 }
 
 .login-title-accent {
-  color: #35EBFF;
+  color: #dbff00;
 }
 
 /* Tagline / subtitle */
@@ -125,7 +125,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #35EBFF;
+  color: #db00;
   font-size: 18px;
 }
 
@@ -181,6 +181,7 @@
 /* Logo Section */
 .login-logo-section {
   margin-bottom: 40px;
+ 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -352,7 +353,7 @@
   font-family: 'Manrope', sans-serif;
   font-size: 14px;
   font-weight: 500;
-  color: #173C7C;
+  color: #5006ba;
   text-decoration: none;
   transition: color 0.15s ease;
 }
@@ -369,7 +370,7 @@
   height: 55px;
   border: none;
   border-radius: 12px;
-  background: radial-gradient(circle at 60% 40%, #173C7C, #0E224D);
+  background: radial-gradient(circle at 60% 40%, #6510b4, #29055e);
   color: #ffffff;
   font-family: 'Manrope', sans-serif;
   font-size: 16px;

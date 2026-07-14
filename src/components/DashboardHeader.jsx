@@ -32,13 +32,13 @@ export default function DashboardHeader({ onLogout, onMobileMenuClick }) {
         </button>
 
         <div className='flex flex-col'>
-          <h3>Overview</h3>
-          <p>Real-time overview of your AI conversational platform</p>
+          <h3>Season overview</h3>
+          {/* <p>Real-time overview of your AI conversational platform</p> */}
         </div>
       </div>
 
       <div className="d-flex align-items-center gap-3">
-        <div className="header-date-range">
+        {/* <div className="header-date-range">
           <div className="header-date-field">
             <i className="bi bi-calendar3 header-date-icon" />
             <input
@@ -62,7 +62,7 @@ export default function DashboardHeader({ onLogout, onMobileMenuClick }) {
               title="End date"
             />
           </div>
-        </div>
+        </div> */}
 
         <button
           className="header-icon-btn header-icon-btn--primary"

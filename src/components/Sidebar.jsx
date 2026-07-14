@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthProvider';
-import logo from '../assets/logo.svg'
+import logo from '../assets/logow.png'
 import logosm from '../assets/logosm.png'
 
 const navItems = [

@@ -62,7 +62,7 @@ export default function CallLogTable() {
     <div className="card clt-card">
       <div className="clt-header">
         <div>
-          <h6 className="clt-title">Recent Conversations</h6>
+          <h6 className="clt-title">Jurors</h6>
           <p className="clt-subtitle">Manage and track all customer communications</p>
         </div>
         <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -95,11 +95,11 @@ export default function CallLogTable() {
             <thead>
               <tr className="clt-thead-row">
                 <th className="clt-th ps-4">Customer</th>
-                <th className="clt-th text-center">Channel</th>
+                <th className="clt-th text-center">Category</th>
                 <th className="clt-th text-center">Intent</th>
-                <th className="clt-th text-center">Sentiment</th>
-                <th className="clt-th text-center">Duration</th>
-                <th className="clt-th text-center">Time</th>
+                {/* <th className="clt-th text-center">Sentiment</th> */}
+                {/* <th className="clt-th text-center">Duration</th> */}
+                <th className="clt-th text-center">Availability Time</th>
                 <th className="clt-th text-center pe-4">Actions</th>
               </tr>
             </thead>
@@ -131,10 +131,10 @@ export default function CallLogTable() {
                         <span className="clt-badge" style={getChannelStyle(item.channel)}>{item.channel_label || item.channel || '--'}</span>
                       </td>
                       <td className="text-center clt-cell" style={{ fontSize: '13px' }}>{item.intent || '--'}</td>
-                      <td className="text-center">
+                      {/* <td className="text-center">
                         <span className="clt-badge" style={getSentimentStyle(item.sentiment)}>{item.sentiment || '--'}</span>
-                      </td>
-                      <td className="text-center clt-cell">{item.duration ? `${item.duration}s` : '--'}</td>
+                      </td> */}
+                      {/* <td className="text-center clt-cell">{item.duration ? `${item.duration}s` : '--'}</td> */}
                       <td className="text-center clt-cell">{item.time || '--'}</td>
                       <td className="pe-4 text-center">
                         <div className="d-flex gap-2 justify-content-center" onClick={e => e.stopPropagation()}>

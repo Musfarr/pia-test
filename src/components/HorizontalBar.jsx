@@ -2,14 +2,14 @@ import ReactECharts from 'echarts-for-react';
 import { resolutionRate, topIntents } from '../data/dashboardData';
 
 const INTENT_PALETTE = [
-  { bg: '#D1FAE5', ic: '#059669' },
-  { bg: '#DBEAFE', ic: '#3B82F6' },
-  { bg: '#EDE9FE', ic: '#7C3AED' },
-  { bg: '#FCE7F3', ic: '#EC4899' },
-  { bg: '#FEF3C7', ic: '#D97706' },
-  { bg: '#E0F2FE', ic: '#0284C7' },
-  { bg: '#FEE2E2', ic: '#DC2626' },
-  { bg: '#F3F4F6', ic: '#6B7280' },
+  { bg: 'rgb(31 30 31)', ic: '#dbff00' },
+  { bg: 'rgb(31 30 31)', ic: '#dbff00' },
+  { bg: 'rgb(31 30 31)', ic: '#dbff00' },
+  { bg: 'rgb(31 30 31)', ic: '#dbff00' },
+  { bg: 'rgb(31 30 31)', ic: '#dbff00' },
+  { bg: 'rgb(31 30 31)', ic: '#dbff00' },
+  { bg: 'rgb(31 30 31)', ic: '#dbff00' },
+  { bg: 'rgb(31 30 31)', ic: '#dbff00' },
 ];
 
 const CARD_STYLE = {
@@ -44,7 +44,7 @@ export default function HorizontalBar({ variant = 'intents' }) {
           show: true,
           roundCap: true,
           width: 18,
-          itemStyle: { color: '#1B3A7A' },
+          itemStyle: { color: '#5006ba' },
         },
         axisLine: {
           roundCap: true,
@@ -56,7 +56,7 @@ export default function HorizontalBar({ variant = 'intents' }) {
         detail: {
           valueAnimation: true,
           formatter: '{value}%',
-          color: '#1B3A7A',
+          color: '#5006ba',
           fontSize: 28,
           fontWeight: 'bold',
           fontFamily: 'Outfit',
@@ -76,7 +76,7 @@ export default function HorizontalBar({ variant = 'intents' }) {
       <div className="card h-100" style={CARD_STYLE}>
         <div className="card-body p-4">
           <div className="d-flex align-items-center justify-content-between mb-1">
-            <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Resolution Rate</h6>
+            <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Completion Rate</h6>
           </div>
           <div style={{ minHeight: '180px', height: '180px' }}>
             <ReactECharts option={gaugeOption} style={{ height: '100%', width: '100%' }} />
@@ -101,13 +101,13 @@ export default function HorizontalBar({ variant = 'intents' }) {
               </div>
             </div>
           </div>
-          <div className="text-center">
+          {/* <div className="text-center">
             <span className="d-inline-flex align-items-center gap-1 px-3 py-2 rounded-pill fw-semibold"
               style={{ backgroundColor: '#D1FAE5', color: '#059669', fontSize: '13px' }}>
               <i className="bi bi-arrow-up-short" style={{ fontSize: '16px' }} />
               {gaugeData?.rate_change != null ? `${gaugeData.rate_change}%` : '—'} resolution rate
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
     );
@@ -117,7 +117,7 @@ export default function HorizontalBar({ variant = 'intents' }) {
     <div className="card h-100" style={CARD_STYLE}>
       <div className="card-body p-4">
         <div className="d-flex align-items-center justify-content-between mb-4">
-          <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Top Intents</h6>
+          <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Completion status per category</h6>
         </div>
         <div className="d-flex flex-column gap-2">
           {intents.map(item => (
@@ -128,7 +128,7 @@ export default function HorizontalBar({ variant = 'intents' }) {
               </div>
               <span style={{ color: '#374151', fontSize: 'clamp(12px, 0.9vw, 15px)', fontWeight: 500, minWidth: '100px' }}>{item.name}</span>
               <div style={{ flex: 1, height: '12px', backgroundColor: '#E5E7EB', borderRadius: '10px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${(item.pct / maxPct) * 100}%`, background: '#4FAA94', borderRadius: '10px', transition: 'width 0.6s ease' }} />
+                <div style={{ height: '100%', width: `${(item.pct / maxPct) * 100}%`, background: '#5006ba', borderRadius: '10px', transition: 'width 0.6s ease' }} />
               </div>
               <span className="fw-semibold" style={{ color: '#111827', fontSize: '13px', minWidth: '45px', textAlign: 'right' }}>{item.pct}%</span>
             </div>

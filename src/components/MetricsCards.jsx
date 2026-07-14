@@ -57,9 +57,9 @@ export default function MetricsCards() {
                   <span className="metrics-card-value-number">
                     {m.value}
                   </span>
-                  <span className={`metrics-card-badge ${m.positive ? 'positive' : 'negative'}`}>
+                  {/* <span className={`metrics-card-badge ${m.positive ? 'positive' : 'negative'}`}>
                     {m.change}
-                  </span>
+                  </span> */}
                 </div>
               </div>
               {/* Row 3: sparkline */}

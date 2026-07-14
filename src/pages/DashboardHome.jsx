@@ -28,7 +28,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Conversations Trend + Channel Distribution */}
-      <motion.div
+      {/* <motion.div
         className="row g-4 mb-4"
         variants={rowContainer}
         initial="hidden"
@@ -41,10 +41,10 @@ export default function DashboardHome() {
         <motion.div className="col-12 col-xxl-6" variants={colItem}>
           <WordBubble />
         </motion.div>
-      </motion.div>
+      </motion.div> */}
 
       {/* AI Performance + Sentiment Analytics */}
-      <motion.div
+      {/* <motion.div
         className="row g-4 mb-4"
         variants={rowContainer}
         initial="hidden"
@@ -57,7 +57,7 @@ export default function DashboardHome() {
         <motion.div className="col-12 col-xxl-6" variants={colItem}>
           <TopKeyWords variant="sentiment" />
         </motion.div>
-      </motion.div>
+      </motion.div> */}
 
       {/* Top Intents + Resolution Rate */}
       <motion.div

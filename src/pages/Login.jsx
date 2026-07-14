@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthProvider.jsx';
 import { useNavigate } from 'react-router-dom';
 import loginBg from '../assets/bgimg.png';
-import logo from '../assets/logo.svg';
-import loginWaveform from '../assets/panim3.mp4';
+import logo from '../assets/logow.png';
+import loginWaveform from '../assets/portalanim.webm';
 import './Login.css';
 
 
@@ -60,13 +60,15 @@ export default function Login() {
 
         <div className="login-left-content">
           <h1 className="login-title">
-            Where Voice<br />
-            Meets <span className="login-title-accent">Intelligence</span>
+            CELEBRATING THE<br />
+             <span className="login-title-accent">PEOPLE</span>
           </h1>
           <p className="login-tagline">
-            Aivex empowers organizations with AI-driven voice automation and real-time insights
+            Pakistan Influencer Awards recognizes creators, storytellers, and
+communities who inspire, entertain, and drive impact
+
           </p>
-          <div className="login-features">
+          {/* <div className="login-features">
             {FEATURES.map((f, i) => (
               <div key={i} className="login-feature">
                 <div className="login-feature-icon-box">
@@ -78,7 +80,7 @@ export default function Login() {
                 </div>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -88,7 +90,7 @@ export default function Login() {
 
           {/* Logo */}
           <div className="login-logo-section">
-            <img src={logo}></img>
+            <img src={logo} width={200}></img>
           </div>
 
           {/* Form */}

@@ -1,17 +1,11 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
-import { getHourlyAnalytics } from '../services/api';
+import { hourlyAnalytics } from '../data/dashboardData';
 
 export default function HourlyAnalyticsChart() {
   const [showDuration, setShowDuration] = useState(true);
 
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['hourlyAnalytics'],
-    queryFn: getHourlyAnalytics,
-  });
-
-  const data = response?.data || [];
+  const data = hourlyAnalytics;
   const hours = data.map(item => `${item.hour}:00`);
   const calls = data.map(item => item.call_count);
   const avgDuration = data.map(item => item.avg_duration);
@@ -110,19 +104,13 @@ export default function HourlyAnalyticsChart() {
           </button>
         </div>
 
-        {isLoading ? (
-          <div className="d-flex justify-content-center align-items-center" style={{ height: '320px' }}>
-            <div className="spinner-border text-primary spinner-border-sm" role="status"></div>
-          </div>
-        ) : (
-          <div style={{ height: '320px', width: '100%' }}>
-            <ReactECharts
-              option={option}
-              style={{ height: '100%', width: '100%' }}
-              settings={{ notMerge: true }}
-            />
-          </div>
-        )}
+        <div style={{ height: '320px', width: '100%' }}>
+          <ReactECharts
+            option={option}
+            style={{ height: '100%', width: '100%' }}
+            settings={{ notMerge: true }}
+          />
+        </div>
       </div>
     </div>
   );

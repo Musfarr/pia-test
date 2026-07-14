@@ -1,38 +1,34 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getConversations } from '../services/api';
-import { useDateRange } from '../context/DateRangeContext';
+import React, { useEffect, useMemo, useState } from 'react';
+import { conversations } from '../data/dashboardData';
 
 export default function CallLogTable() {
-  const { startDate, endDate } = useDateRange();
   const [expandedRow, setExpandedRow] = useState(null);
   const [playingRow, setPlayingRow] = useState(null);
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ channel: '', search: '' });
-  const searchTimerRef = useRef(null);
   const [searchInput, setSearchInput] = useState('');
 
-  const queryParams = useMemo(
-    () => ({ ...filters, start_date: startDate, end_date: endDate, page, limit }),
-    [filters, startDate, endDate, page, limit]
-  );
+  const filteredRecords = useMemo(() => {
+    const search = filters.search.trim().toLowerCase();
+    return conversations.filter((item) => {
+      const matchesChannel = !filters.channel || item.channel === filters.channel;
+      const matchesSearch = !search || [item.customer, item.summary, item.intent]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(search));
+      return matchesChannel && matchesSearch;
+    });
+  }, [filters]);
 
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['conversations', queryParams],
-    queryFn: () => getConversations(queryParams),
-  });
-
-  const records = response?.data?.conversations ?? [];
-  const pagination = response?.data?.pagination ?? {};
-  const totalRecords = pagination.total ?? 0;
-  const totalPages = pagination.total_pages ?? 1;
+  const totalRecords = filteredRecords.length;
+  const totalPages = Math.max(1, Math.ceil(totalRecords / limit));
+  const records = filteredRecords.slice((page - 1) * limit, page * limit);
 
   useEffect(() => {
     setPage(1);
     setExpandedRow(null);
     setPlayingRow(null);
-  }, [filters, limit, startDate, endDate]);
+  }, [filters, limit]);
 
   const toggleTranscript = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
@@ -49,12 +45,9 @@ export default function CallLogTable() {
   };
 
   const handleSearchChange = (e) => {
-    const val = e.target.value;
-    setSearchInput(val);
-    clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, search: val }));
-    }, 400);
+    const value = e.target.value;
+    setSearchInput(value);
+    setFilters((prev) => ({ ...prev, search: value }));
   };
 
   const clearFilters = () => {
@@ -81,17 +74,16 @@ export default function CallLogTable() {
               placeholder="Search by customer, summary…"
               value={searchInput}
               onChange={handleSearchChange}
-              disabled={isLoading}
             />
           </div>
-          <select className="date-filter-select" value={filters.channel} onChange={(e) => handleFilterChange('channel', e.target.value)} disabled={isLoading}>
+          <select className="date-filter-select" value={filters.channel} onChange={(e) => handleFilterChange('channel', e.target.value)}>
             <option value="">Channel: All</option>
             <option value="web">Web</option>
             {/* <option value="webrtc">WebRTC</option> */}
             <option value="gsm">GSM</option>
             {/* <option value="voice">Voice</option> */}
           </select>
-          <button className="clt-reset-btn" onClick={clearFilters} disabled={isLoading}>
+          <button className="clt-reset-btn" onClick={clearFilters}>
             <i className="bi bi-x-circle"></i> Reset
           </button>
         </div>
@@ -112,14 +104,7 @@ export default function CallLogTable() {
               </tr>
             </thead>
             <tbody className="border-top-0">
-              {isLoading && !records.length ? (
-                <tr>
-                  <td colSpan="7" className="text-center py-5">
-                    <div className="spinner-border spinner-border-sm me-2" style={{ color: '#173C7C' }} />
-                    <span style={{ color: '#9CA3AF', fontSize: '14px' }}>Loading records...</span>
-                  </td>
-                </tr>
-              ) : !records.length ? (
+              {!records.length ? (
                 <tr>
                   <td colSpan="7" className="text-center py-5">
                     <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#D1D5DB', display: 'block', marginBottom: '8px' }}></i>
@@ -250,7 +235,7 @@ export default function CallLogTable() {
         <div className="d-flex align-items-center gap-3">
           <div className="d-flex align-items-center gap-2">
             <span className="clt-cell">Per page:</span>
-            <select className="date-filter-select" value={limit} onChange={(e) => setLimit(Number(e.target.value))} disabled={isLoading}>
+            <select className="date-filter-select" value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>

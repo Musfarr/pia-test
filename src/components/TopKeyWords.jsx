@@ -1,7 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
-import { getSentimentAnalytics } from '../services/api';
-import { useDateRange } from '../context/DateRangeContext';
+import { sentimentAnalytics } from '../data/dashboardData';
 
 const SENTIMENT_PALETTE = ['#376AB3', '#4FAA94', '#86C7B1', '#EDC176', '#A78BFA', '#F97316', '#14B8A6', '#FB7185'];
 
@@ -23,22 +21,11 @@ const CARD_STYLE = {
 
 
 export default function TopKeyWords({ variant = 'sentiment' }) {
-  const { startDate, endDate } = useDateRange();
+  const total = sentimentAnalytics.total;
 
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['sentimentAnalytics', startDate, endDate],
-    queryFn: () => getSentimentAnalytics(startDate, endDate),
-    enabled: variant === 'sentiment',
-  });
-
-  const apiData = response?.data;
-  const total = apiData?.total ?? 0;
-
-  const sentimentData = (apiData?.distribution ?? []).map((d, i) => ({
-    name: d.sentiment ?? '—',
-    value: d.percentage ?? 0,
-    count: d.count ?? 0,
-    color: SENTIMENT_PALETTE[i % SENTIMENT_PALETTE.length],
+  const sentimentData = sentimentAnalytics.distribution.map((item, index) => ({
+    ...item,
+    color: item.color ?? SENTIMENT_PALETTE[index % SENTIMENT_PALETTE.length],
   }));
 
   if (variant === 'status') {
@@ -96,36 +83,26 @@ export default function TopKeyWords({ variant = 'sentiment' }) {
         <div className="d-flex align-items-center justify-content-between mb-4">
           <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>Sentiment Analytics</h6>
         </div>
-        {isLoading ? (
-          <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '220px' }}>
-            <span className="spinner-border spinner-border-sm text-secondary" />
-          </div>
-        ) : (
-          <div className="d-flex align-items-center gap-2" style={{ flex: 1, minHeight: '200px' }}>
-            <div style={{ flex: '0 0 52%', alignSelf: 'stretch', minHeight: '200px', position: 'relative' }}>
-              <ReactECharts option={option} style={{ height: '100%', width: '100%', minHeight: '200px' }} />
-              <div style={{
-                position: 'absolute', top: '48%', left: '50%',
-                transform: 'translate(-50%, -50%)',
-                textAlign: 'center', pointerEvents: 'none',
-              }}>
-                <div style={{ color: '#9CA3AF', fontSize: '11px', lineHeight: 1.4 }}>Total</div>
-                <div style={{ color: '#111827', fontSize: '18px', fontWeight: 700, lineHeight: 1.2 }}>{total.toLocaleString()}</div>
-              </div>
+        <div className="d-flex align-items-center gap-2" style={{ flex: 1, minHeight: '200px' }}>
+          <div style={{ flex: '0 0 52%', alignSelf: 'stretch', minHeight: '200px', position: 'relative' }}>
+            <ReactECharts option={option} style={{ height: '100%', width: '100%', minHeight: '200px' }} />
+            <div style={{ position: 'absolute', top: '48%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
+              <div style={{ color: '#9CA3AF', fontSize: '11px', lineHeight: 1.4 }}>Total</div>
+              <div style={{ color: '#111827', fontSize: '18px', fontWeight: 700, lineHeight: 1.2 }}>{total.toLocaleString()}</div>
             </div>
-            <div style={{ flex: 1 }}>
-              {sentimentData.map(d => (
-                <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
-                  <div className="d-flex align-items-center gap-2">
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
-                    <span style={{ color: '#374151', fontSize: 'clamp(11px, 0.85vw, 15px)' }}>{d.name}</span>
-                  </div>
-                  <span className="fw-medium" style={{ color: '#111827', fontSize: 'clamp(11px, 0.85vw, 15px)' }}>{d.value}%</span>
+          </div>
+          <div style={{ flex: 1 }}>
+            {sentimentData.map(d => (
+              <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
+                <div className="d-flex align-items-center gap-2">
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
+                  <span style={{ color: '#374151', fontSize: 'clamp(11px, 0.85vw, 15px)' }}>{d.name}</span>
                 </div>
-              ))}
-            </div>
+                <span className="fw-medium" style={{ color: '#111827', fontSize: 'clamp(11px, 0.85vw, 15px)' }}>{d.value}%</span>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

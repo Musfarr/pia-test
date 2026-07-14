@@ -1,7 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
-import { getTopIntents, getResolutionRate } from '../services/api';
-import { useDateRange } from '../context/DateRangeContext';
+import { resolutionRate, topIntents } from '../data/dashboardData';
 
 const INTENT_PALETTE = [
   { bg: '#D1FAE5', ic: '#059669' },
@@ -22,26 +20,11 @@ const CARD_STYLE = {
 
 
 export default function HorizontalBar({ variant = 'intents' }) {
-  const { startDate, endDate } = useDateRange();
+  const gaugeData = resolutionRate;
 
-  const { data: response, isLoading: intentsLoading } = useQuery({
-    queryKey: ['topIntents', startDate, endDate],
-    queryFn: () => getTopIntents(startDate, endDate, 8),
-    enabled: variant === 'intents',
-  });
-
-  const { data: gaugeResponse, isLoading: gaugeLoading } = useQuery({
-    queryKey: ['resolutionRate', startDate, endDate],
-    queryFn: () => getResolutionRate(startDate, endDate),
-    enabled: variant === 'gauge',
-  });
-
-  const gaugeData = gaugeResponse?.data;
-
-  const intents = (response?.data?.intents ?? []).map((item, i) => ({
-    name: item.intent ?? '—',
-    pct: item.percentage ?? 0,
-    ...INTENT_PALETTE[i % INTENT_PALETTE.length],
+  const intents = topIntents.map((item, index) => ({
+    ...item,
+    ...INTENT_PALETTE[index % INTENT_PALETTE.length],
   }));
 
   const maxPct = intents.length ? Math.max(...intents.map(d => d.pct), 1) : 1;
@@ -95,15 +78,9 @@ export default function HorizontalBar({ variant = 'intents' }) {
           <div className="d-flex align-items-center justify-content-between mb-1">
             <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Resolution Rate</h6>
           </div>
-          {gaugeLoading ? (
-            <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '180px' }}>
-              <span className="spinner-border spinner-border-sm text-secondary" />
-            </div>
-          ) : (
-            <div style={{ minHeight: '180px', height: '180px' }}>
-              <ReactECharts option={gaugeOption} style={{ height: '100%', width: '100%' }} />
-            </div>
-          )}
+          <div style={{ minHeight: '180px', height: '180px' }}>
+            <ReactECharts option={gaugeOption} style={{ height: '100%', width: '100%' }} />
+          </div>
           <div className="d-flex gap-3 mb-3">
             <div className="text-center p-3 rounded-3 flex-fill" style={{ backgroundColor: '#F9FAFB' }}>
               <div className="fw-bold" style={{ fontSize: '22px', color: '#111827', lineHeight: 1.2 }}>
@@ -142,33 +119,21 @@ export default function HorizontalBar({ variant = 'intents' }) {
         <div className="d-flex align-items-center justify-content-between mb-4">
           <h6 className="mb-0 fw-bold" style={{ color: '#111827', fontSize: '15px' }}>Top Intents</h6>
         </div>
-        {intentsLoading ? (
-          <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '200px' }}>
-            <span className="spinner-border spinner-border-sm text-secondary" />
-          </div>
-        ) : (
-          <div className="d-flex flex-column gap-2">
-            {intents.map(item => (
-              <div key={item.name} className="d-flex align-items-center gap-3 pb-3">
-                <div className="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
-                  style={{ width: '32px', height: '32px', backgroundColor: item.bg }}>
-                  <i className="bi bi-chat-dots" style={{ color: item.ic, fontSize: '14px' }} />
-                </div>
-                <span style={{ color: '#374151', fontSize: 'clamp(12px, 0.9vw, 15px)', fontWeight: 500, minWidth: '100px' }}>{item.name}</span>
-                <div style={{ flex: 1, height: '12px', backgroundColor: '#E5E7EB', borderRadius: '10px', overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%',
-                    width: `${(item.pct / maxPct) * 100}%`,
-                    background: '#4FAA94',
-                    borderRadius: '10px',
-                    transition: 'width 0.6s ease',
-                  }} />
-                </div>
-                <span className="fw-semibold" style={{ color: '#111827', fontSize: '13px', minWidth: '45px', textAlign: 'right' }}>{item.pct}%</span>
+        <div className="d-flex flex-column gap-2">
+          {intents.map(item => (
+            <div key={item.name} className="d-flex align-items-center gap-3 pb-3">
+              <div className="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                style={{ width: '32px', height: '32px', backgroundColor: item.bg }}>
+                <i className="bi bi-chat-dots" style={{ color: item.ic, fontSize: '14px' }} />
               </div>
-            ))}
-          </div>
-        )}
+              <span style={{ color: '#374151', fontSize: 'clamp(12px, 0.9vw, 15px)', fontWeight: 500, minWidth: '100px' }}>{item.name}</span>
+              <div style={{ flex: 1, height: '12px', backgroundColor: '#E5E7EB', borderRadius: '10px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${(item.pct / maxPct) * 100}%`, background: '#4FAA94', borderRadius: '10px', transition: 'width 0.6s ease' }} />
+              </div>
+              <span className="fw-semibold" style={{ color: '#111827', fontSize: '13px', minWidth: '45px', textAlign: 'right' }}>{item.pct}%</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
-import { getChannelDistribution } from '../services/api';
-import { useDateRange } from '../context/DateRangeContext';
+import { channelDistribution } from '../data/dashboardData';
 
 const CHANNEL_PALETTE = ['#376AB3', '#86C7B1', '#4FAA94', '#EDC176', '#F1AB8F', '#A78BFA'];
 
@@ -17,21 +15,10 @@ const CARD_STYLE = {
 };
 
 const WordBubble = () => {
-  const { startDate, endDate } = useDateRange();
-
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['channelDistribution', startDate, endDate],
-    queryFn: () => getChannelDistribution(startDate, endDate),
-  });
-
-  const distribution = response?.data?.distribution ?? [];
-
-  const chartData = distribution.map((d, i) => ({
-    name: d.label ?? d.channel,
-    value: d.percentage ?? 0,
-    count: d.count ?? 0,
-    color: CHANNEL_PALETTE[i % CHANNEL_PALETTE.length],
-    icon: CHANNEL_META[d.channel]?.icon ?? 'bi-broadcast',
+  const chartData = channelDistribution.map((item, index) => ({
+    ...item,
+    color: item.color ?? CHANNEL_PALETTE[index % CHANNEL_PALETTE.length],
+    icon: item.icon ?? CHANNEL_META[item.name?.toLowerCase()]?.icon ?? 'bi-broadcast',
   }));
 
   const option = {
@@ -64,28 +51,22 @@ const WordBubble = () => {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>Channel Distribution</h6>
         </div>
-        {isLoading ? (
-          <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '220px' }}>
-            <span className="spinner-border spinner-border-sm text-secondary" />
+        <div className="d-flex align-items-center gap-2" style={{ flex: 1, minHeight: '200px' }}>
+          <div style={{ flex: '0 0 52%', alignSelf: 'stretch', minHeight: '200px' }}>
+            <ReactECharts option={option} style={{ height: '100%', width: '100%', minHeight: '200px' }} />
           </div>
-        ) : (
-          <div className="d-flex align-items-center gap-2" style={{ flex: 1, minHeight: '200px' }}>
-            <div style={{ flex: '0 0 52%', alignSelf: 'stretch', minHeight: '200px' }}>
-              <ReactECharts option={option} style={{ height: '100%', width: '100%', minHeight: '200px' }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              {chartData.map(d => (
-                <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
-                  <div className="d-flex align-items-center gap-2">
-                    <i className={`bi ${d.icon}`} style={{ color: '#9CA3AF', fontSize: 'clamp(12px, 0.9vw, 15px)', width: '16px' }} />
-                    <span style={{ color: '#374151', fontSize: 'clamp(12px, 0.9vw, 15px)' }}>{d.name}:</span>
-                  </div>
-                  <span className="fw-medium" style={{ color: '#111827', fontSize: 'clamp(12px, 0.9vw, 15px)' }}>{d.value}%</span>
+          <div style={{ flex: 1 }}>
+            {chartData.map(d => (
+              <div key={d.name} className="d-flex align-items-center justify-content-between mb-3">
+                <div className="d-flex align-items-center gap-2">
+                  <i className={`bi ${d.icon}`} style={{ color: '#9CA3AF', fontSize: 'clamp(12px, 0.9vw, 15px)', width: '16px' }} />
+                  <span style={{ color: '#374151', fontSize: 'clamp(12px, 0.9vw, 15px)' }}>{d.name}:</span>
                 </div>
-              ))}
-            </div>
+                <span className="fw-medium" style={{ color: '#111827', fontSize: 'clamp(12px, 0.9vw, 15px)' }}>{d.value}%</span>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

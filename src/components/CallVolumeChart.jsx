@@ -1,7 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import ReactECharts from 'echarts-for-react';
-import { getConversationsTrend } from '../services/api';
-import { useDateRange } from '../context/DateRangeContext';
+import { conversationTrend } from '../data/dashboardData';
 
 const SERIES_CONFIG = [
   { name: 'Voice Calls', key: 'voice_calls', color: '#1B3A7A' },
@@ -16,14 +14,7 @@ const CARD_STYLE = {
 };
 
 export default function CallVolumeChart() {
-  const { startDate, endDate } = useDateRange();
-
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['conversationsTrend', startDate, endDate],
-    queryFn: () => getConversationsTrend(startDate, endDate),
-  });
-
-  const trend = response?.data?.trend ?? [];
+  const trend = conversationTrend;
   const labels = trend.map(d => d.date);
   const datasets = {
     voice_calls: trend.map(d => d.voice_calls),
@@ -94,14 +85,7 @@ export default function CallVolumeChart() {
           <h6 className="mb-0 fw-medium" style={{ color: '#111827', fontSize: '18px' }}>Conversations Trend</h6>
         </div>
         <div style={{ minHeight: '280px', height: '280px', width: '100%', position: 'relative' }}>
-          {isLoading && (
-            <div className="d-flex align-items-center justify-content-center h-100">
-              <span className="spinner-border spinner-border-sm text-secondary" />
-            </div>
-          )}
-          {!isLoading && (
-            <ReactECharts option={option} style={{ height: '100%', width: '100%' }} settings={{ notMerge: true }} />
-          )}
+          <ReactECharts option={option} style={{ height: '100%', width: '100%' }} settings={{ notMerge: true }} />
         </div>
       </div>
     </div>

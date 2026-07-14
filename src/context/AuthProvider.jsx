@@ -7,33 +7,31 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
+  const [loading] = useState(false);
 
   const SetLoginData = (data) => {
-    const authToken = data.token || data.session_token || data.access_token;
     const userData = data.user || data;
 
     setUser(userData);
-    setToken(authToken);
-    localStorage.setItem('token', authToken);
+    setIsLoggedIn(true);
+    localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const SetLogoutData = () => {
     setUser(null);
-    setToken(null);
-    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('user');
   };
 
   const value = {
     user,
     loading,
-    token,
     SetLoginData,
     SetLogoutData,
-    isLoggedIn: !!token,
+    isLoggedIn,
   };
 
   return (

@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import MetricsCards from '../components/MetricsCards';
 import CallVolumeChart from '../components/CallVolumeChart';
 import SentimentBar from '../components/SentimentBar';
 import WordBubble from '../components/WordBubble';
 import HorizontalBar from '../components/HorizontalBar';
-import CallLogTable from '../components/CallLogTable';
+import JuryTable from '../components/JuryTable';
 import TopKeyWords from '../components/TopKeyWords';
+import { juries as initialJuries } from '../data/dashboardData';
 
 const rowContainer = {
   hidden: {},
@@ -19,6 +20,16 @@ const colItem = {
 };
 
 export default function DashboardHome() {
+  const [juries, setJuries] = useState(initialJuries);
+
+  const handleDelete = (id) => {
+    setJuries((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleAssignCategory = (id, category) => {
+    setJuries((prev) => prev.map((item) => (item.id === id ? { ...item, category } : item)));
+  };
+
   return (
     <div className='container-fluid px-3'>
 
@@ -84,7 +95,12 @@ export default function DashboardHome() {
         viewport={{ once: true, amount: 0.1 }}
       >
         <motion.div className="col-12 col-xl-12" variants={colItem}>
-          <CallLogTable />
+          <JuryTable
+            juries={juries}
+            onDelete={handleDelete}
+            onAssignCategory={handleAssignCategory}
+            viewAllHref="/dashboard/jury"
+          />
         </motion.div>
         {/* <div className="col-12 col-xl-4">
           <TopKeyWords variant="status" />

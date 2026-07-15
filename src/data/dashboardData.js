@@ -1,7 +1,7 @@
 export const dashboardMetrics = [
-  { label: 'Total Nominees', value: '2,847', change: '+12.5%', positive: true, spark: [42, 48, 44, 58, 55, 68, 64, 76, 81], color: '#5006ba' },
-  { label: 'Total Jurors', value: '1,936', change: '+8.2%', positive: true, spark: [30, 42, 38, 50, 46, 56, 62, 59, 70], color: '#5006ba' },
-  { label: 'Total Categories', value: '911', change: '+16.4%', positive: true, spark: [18, 22, 20, 29, 34, 32, 41, 47, 52], color: '#5006ba' },
+  { label: 'Total Nominees', value: '47', change: '+12.5%', positive: true, spark: [42, 48, 44, 58, 55, 68, 64, 76, 81], color: '#5006ba' },
+  { label: 'Total Jurors', value: '6', change: '+8.2%', positive: true, spark: [30, 42, 38, 50, 46, 56, 62, 59, 70], color: '#5006ba' },
+  { label: 'Total Categories', value: '11', change: '+16.4%', positive: true, spark: [18, 22, 20, 29, 34, 32, 41, 47, 52], color: '#5006ba' },
   // { label: 'Avg. Resolution Time', value: '3m 42s', change: '-6.8%', positive: true, spark: [64, 60, 62, 55, 57, 49, 46, 44, 41], color: '#5006ba' },
   // { label: 'Total Minutes', value: '8,429.5', change: '+10.1%', positive: true, spark: [48, 51, 47, 60, 62, 59, 71, 74, 80], color: '#5006ba' },
 ];
@@ -73,4 +73,25 @@ export const hourlyAnalytics = [
   { hour: 14, call_count: 142, avg_duration: 3.8 },
   { hour: 16, call_count: 119, avg_duration: 3.2 },
   { hour: 18, call_count: 91, avg_duration: 2.9 },
+];
+
+export const seasonOptions = ['Season 1', 'Season 2', 'Season 3', 'Season 4', 'Season 5'];
+
+export const categories = [
+  { id: 1, name: 'Best Actor', season: 'Season 3', createdAt: 'Jul 02, 2026' },
+  { id: 2, name: 'Best Actress', season: 'Season 3', createdAt: 'Jul 02, 2026' },
+  { id: 3, name: 'Best Director', season: 'Season 2', createdAt: 'Jun 21, 2026' },
+  { id: 4, name: 'Best Content Creator', season: 'Season 4', createdAt: 'Jul 08, 2026' },
+  { id: 5, name: 'Best Gamer', season: 'Season 4', createdAt: 'Jul 08, 2026' },
+  { id: 6, name: 'Best Lifestyle Influencer', season: 'Season 5', createdAt: 'Jul 12, 2026' },
+  { id: 7, name: 'Best Newcomer', season: 'Season 1', createdAt: 'May 30, 2026' },
+];
+
+export const juryTypes = ['Creator', 'Executive'];
+
+export const juries = [
+  { id: 1, name: 'Ayesha Khan', image: '', type: 'Creator', username: 'ayesha.khan', password: 'Passw0rd!', category: 'Best Actor', createdAt: 'Jul 03, 2026' },
+  { id: 2, name: 'Omar Siddiqui', image: '', type: 'Executive', username: 'omar.siddiqui', password: 'Passw0rd!', category: 'Best Director', createdAt: 'Jun 25, 2026' },
+  { id: 3, name: 'Sara Ahmed', image: '', type: 'Creator', username: 'sara.ahmed', password: 'Passw0rd!', category: 'Best Content Creator', createdAt: 'Jul 09, 2026' },
+  { id: 4, name: 'Bilal Hussain', image: '', type: 'Executive', username: 'bilal.hussain', password: 'Passw0rd!', category: '', createdAt: 'Jul 10, 2026' },
 ];

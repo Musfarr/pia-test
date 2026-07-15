@@ -44,7 +44,19 @@ export default function HorizontalBar({ variant = 'intents' }) {
           show: true,
           roundCap: true,
           width: 18,
-          itemStyle: { color: '#5006ba' },
+          itemStyle: {
+            color: {
+              type: 'linear',
+              x: 0.4,
+              y: 0.4,
+              x2: 1,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: '#6510b4' },
+                { offset: 1, color: '#29055e' }
+              ]
+            }
+          },
         },
         axisLine: {
           roundCap: true,
@@ -128,7 +140,7 @@ export default function HorizontalBar({ variant = 'intents' }) {
               </div>
               <span style={{ color: '#374151', fontSize: 'clamp(12px, 0.9vw, 15px)', fontWeight: 500, minWidth: '100px' }}>{item.name}</span>
               <div style={{ flex: 1, height: '12px', backgroundColor: '#E5E7EB', borderRadius: '10px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${(item.pct / maxPct) * 100}%`, background: '#5006ba', borderRadius: '10px', transition: 'width 0.6s ease' }} />
+                <div style={{ height: '100%', width: `${(item.pct / maxPct) * 100}%`, background: 'radial-gradient(circle at 60% 40%, #6510b4, #29055e)', borderRadius: '10px', transition: 'width 0.6s ease' }} />
               </div>
               <span className="fw-semibold" style={{ color: '#111827', fontSize: '13px', minWidth: '45px', textAlign: 'right' }}>{item.pct}%</span>
             </div>

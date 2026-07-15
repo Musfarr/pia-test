@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import DashboardHome from './pages/DashboardHome';
+import Categories from './pages/Categories';
+import Jury from './pages/Jury';
 import Login from './pages/Login';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -19,7 +21,11 @@ function AppContent() {
     {
       path: '/dashboard',
       element: isLoggedIn ? <Dashboard onLogout={SetLogoutData} /> : <Navigate to="/login" replace />,
-      children: [{ index: true, element: <DashboardHome /> }],
+      children: [
+        { index: true, element: <DashboardHome /> },
+        { path: 'categories', element: <Categories /> },
+        { path: 'jury', element: <Jury /> },
+      ],
     },
     {
       path: '/',

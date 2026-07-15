@@ -6,11 +6,20 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+.env
+
 
 node_modules
 dist
 dist-ssr
 *.local
+
+
+.claude
+.gitnexus
+AGENTS.md
+CLAUDE.md
+
 
 # Editor directories and files
 .vscode/*

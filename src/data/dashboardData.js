@@ -2,7 +2,7 @@ export const dashboardMetrics = [
   { label: 'Total Nominees', value: '47', change: '+12.5%', positive: true, spark: [42, 48, 44, 58, 55, 68, 64, 76, 81], color: '#5006ba' },
   { label: 'Total Jurors', value: '6', change: '+8.2%', positive: true, spark: [30, 42, 38, 50, 46, 56, 62, 59, 70], color: '#5006ba' },
   { label: 'Total Categories', value: '11', change: '+16.4%', positive: true, spark: [18, 22, 20, 29, 34, 32, 41, 47, 52], color: '#5006ba' },
-  // { label: 'Avg. Resolution Time', value: '3m 42s', change: '-6.8%', positive: true, spark: [64, 60, 62, 55, 57, 49, 46, 44, 41], color: '#5006ba' },
+  { label: 'Avg. Rating ', value: '23%', change: '-6.8%', positive: true, spark: [64, 60, 62, 55, 57, 49, 46, 44, 41], color: '#5006ba' },
   // { label: 'Total Minutes', value: '8,429.5', change: '+10.1%', positive: true, spark: [48, 51, 47, 60, 62, 59, 71, 74, 80], color: '#5006ba' },
 ];
 

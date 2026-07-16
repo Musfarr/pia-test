@@ -60,6 +60,7 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
               <tr className="clt-thead-row">
                 <th className="clt-th ps-4">Category Name</th>
                 <th className="clt-th text-center">Season</th>
+                <th className="clt-th text-center">Admin</th>
                 <th className="clt-th text-center">Created</th>
                 <th className="clt-th text-center pe-4">Actions</th>
               </tr>
@@ -67,14 +68,14 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
             <tbody className="border-top-0">
               {isLoading ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-5">
+                  <td colSpan="5" className="text-center py-5">
                     <div className="spinner-border text-primary" role="status"></div>
                     <p className="mb-0 mt-2" style={{ color: '#9CA3AF', fontSize: '14px' }}>Loading categories…</p>
                   </td>
                 </tr>
               ) : !filteredCategories.length ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-5">
+                  <td colSpan="5" className="text-center py-5">
                     <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#D1D5DB', display: 'block', marginBottom: '8px' }}></i>
                     <p className="mb-0" style={{ color: '#9CA3AF', fontSize: '14px' }}>No categories found</p>
                   </td>
@@ -90,6 +91,9 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
                     </td>
                     <td className="text-center">
                       <span className="clt-badge" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>{item.season}</span>
+                    </td>
+                    <td className="text-center clt-cell">
+                      {item.categoryAdminId ? item.categoryAdminId.email : '—'}
                     </td>
                     <td className="text-center clt-cell">{new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
                     <td className="pe-4 text-center">

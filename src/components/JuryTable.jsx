@@ -69,7 +69,7 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
                 <th className="clt-th ps-4">Jury Member</th>
                 <th className="clt-th text-center">Type</th>
                 <th className="clt-th text-center">Username</th>
-                <th className="clt-th text-center">Assigned Category</th>
+                <th className="clt-th text-center">Assigned Categories</th>
                 <th className="clt-th text-center pe-4">Actions</th>
               </tr>
             </thead>
@@ -115,16 +115,34 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
                     </td>
                     <td className="text-center clt-cell">{item.username}</td>
                     <td className="text-center">
-                      <select
-                        className="date-filter-select"
-                        value={item.category || ''}
-                        onChange={(e) => onAssignCategory(item._id, e.target.value)}
-                      >
-                        <option value="">Unassigned</option>
-                        {categories.map((cat) => (
-                          <option key={cat._id} value={cat.name}>{cat.name}</option>
-                        ))}
-                      </select>
+                      <div className="d-flex flex-wrap gap-1 justify-content-center">
+                        {categories.map((cat) => {
+                          const assigned = (item.categories || []).includes(cat.name);
+                          return (
+                            <button
+                              key={cat._id}
+                              type="button"
+                              className="clt-badge"
+                              style={{
+                                backgroundColor: assigned ? '#EEF4FF' : '#F3F4F6',
+                                color: assigned ? '#5006ba' : '#9CA3AF',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                              }}
+                              onClick={() => onAssignCategory(item._id, cat.name)}
+                              title={assigned ? 'Click to unassign' : 'Click to assign'}
+                            >
+                              {cat.name}
+                            </button>
+                          );
+                        })}
+                        {categories.length === 0 && (
+                          <span style={{ color: '#9CA3AF', fontSize: '13px' }}>No categories available</span>
+                        )}
+                      </div>
                     </td>
                     <td className="pe-4 text-center">
                       <div className="d-flex gap-2 justify-content-center">

@@ -11,6 +11,9 @@ export default function Categories() {
   const { data: categories = [], isLoading } = useCategories();
   const [name, setName] = useState('');
   const [season, setSeason] = useState('');
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -19,10 +22,17 @@ export default function Categories() {
 
     setSubmitting(true);
     try {
-      await createCategory({ name: name.trim(), season });
+      await createCategory({
+        name: name.trim(),
+        season,
+        adminUsername: adminUsername.trim(),
+        adminPassword,
+      });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       setName('');
       setSeason('');
+      setAdminUsername('');
+      setAdminPassword('');
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to create category');
     } finally {
@@ -80,6 +90,42 @@ export default function Categories() {
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
+            </div>
+
+            <div className="cat-form-field">
+              <label className="cat-form-label" htmlFor="category-admin-username">Category Admin Username</label>
+              <input
+                id="category-admin-username"
+                className="cat-form-input"
+                type="text"
+                placeholder="e.g. admin.bestactor"
+                value={adminUsername}
+                onChange={(e) => setAdminUsername(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="cat-form-field">
+              <label className="cat-form-label" htmlFor="category-admin-password">Category Admin Password</label>
+              <div className="cat-form-password-wrap">
+                <input
+                  id="category-admin-password"
+                  className="cat-form-input"
+                  type={showAdminPassword ? 'text' : 'password'}
+                  placeholder="Enter admin password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="cat-form-password-toggle"
+                  onClick={() => setShowAdminPassword((p) => !p)}
+                  title={showAdminPassword ? 'Hide password' : 'Show password'}
+                >
+                  <i className={`bi bi-${showAdminPassword ? 'eye-slash' : 'eye'}`}></i>
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="cat-form-submit" disabled={submitting}>

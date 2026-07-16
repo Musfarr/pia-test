@@ -1,16 +1,21 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { juries as initialJuries, juryTypes } from '../data/dashboardData';
+import { useQueryClient } from '@tanstack/react-query';
+import { juryTypes } from '../data/dashboardData';
+import { useJuries } from '../hooks/useQueries';
+import { createJury, deleteJury, assignJuryCategory } from '../util/api';
 import JuryTable from '../components/JuryTable';
 
 export default function Jury() {
-  const [juries, setJuries] = useState(initialJuries);
+  const queryClient = useQueryClient();
+  const { data: juries = [], isLoading } = useJuries();
   const [name, setName] = useState('');
   const [type, setType] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [image, setImage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleImageChange = (e) => {
@@ -21,36 +26,50 @@ export default function Jury() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim() || !type || !username.trim() || !password.trim()) return;
 
-    const newJury = {
-      id: Date.now(),
-      name: name.trim(),
-      image,
-      type,
-      username: username.trim(),
-      password: password.trim(),
-      category: '',
-      createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-    };
-
-    setJuries((prev) => [newJury, ...prev]);
-    setName('');
-    setType('');
-    setUsername('');
-    setPassword('');
-    setImage('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setSubmitting(true);
+    try {
+      await createJury({
+        name: name.trim(),
+        image,
+        type,
+        username: username.trim(),
+        password: password.trim(),
+        category: '',
+      });
+      queryClient.invalidateQueries({ queryKey: ['juries'] });
+      setName('');
+      setType('');
+      setUsername('');
+      setPassword('');
+      setImage('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create jury member');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    setJuries((prev) => prev.filter((item) => item.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      await deleteJury(id);
+      queryClient.invalidateQueries({ queryKey: ['juries'] });
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete jury member');
+    }
   };
 
-  const handleAssignCategory = (id, category) => {
-    setJuries((prev) => prev.map((item) => (item.id === id ? { ...item, category } : item)));
+  const handleAssignCategory = async (id, category) => {
+    try {
+      await assignJuryCategory(id, category);
+      queryClient.invalidateQueries({ queryKey: ['juries'] });
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to assign category');
+    }
   };
 
   return (
@@ -156,8 +175,8 @@ export default function Jury() {
               </div>
             </div>
 
-            <button type="submit" className="cat-form-submit">
-              <i className="bi bi-plus-lg"></i> Add Jury
+            <button type="submit" className="cat-form-submit" disabled={submitting}>
+              {submitting ? 'Adding...' : (<><i className="bi bi-plus-lg"></i> Add Jury</>)}
             </button>
           </div>
         </form>
@@ -168,7 +187,7 @@ export default function Jury() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
       >
-        <JuryTable juries={juries} onDelete={handleDelete} onAssignCategory={handleAssignCategory} />
+        <JuryTable juries={juries} onDelete={handleDelete} onAssignCategory={handleAssignCategory} isLoading={isLoading} />
       </motion.div>
 
     </div>

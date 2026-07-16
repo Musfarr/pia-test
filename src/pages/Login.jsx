@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthProvider.jsx';
 import { useNavigate } from 'react-router-dom';
+import { login as loginApi } from '../util/api';
 import loginBg from '../assets/bgimg.png';
 import logo from '../assets/logow.png';
 import loginWaveform from '../assets/portalanim.webm';
@@ -31,22 +32,28 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const { SetLoginData } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) return;
 
-    SetLoginData({
-      user: {
-        email,
-        company_name: 'Administrator',
-        role: 'Administrator',
-      },
-    });
-    navigate('/dashboard');
+    setError('');
+    setLoading(true);
+    try {
+      const data = await loginApi(email, password);
+      SetLoginData(data);
+      navigate('/dashboard');
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Login failed. Please try again.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -95,6 +102,13 @@ communities who inspire, entertain, and drive impact
 
           {/* Form */}
           <form onSubmit={handleSubmit} noValidate>
+
+            {error && (
+              <div className="login-error">
+                <i className="bi bi-exclamation-circle"></i>
+                <span>{error}</span>
+              </div>
+            )}
 
             {/* Email */}
             <div className="login-field">
@@ -153,8 +167,8 @@ communities who inspire, entertain, and drive impact
             </div>
 
             {/* Sign in */}
-            <button type="submit" className="login-btn-signin">
-              Sign in
+            <button type="submit" className="login-btn-signin" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
 
           </form>

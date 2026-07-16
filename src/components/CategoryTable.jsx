@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { seasonOptions } from '../data/dashboardData';
 
-export default function CategoryTable({ categories, onDelete }) {
+export default function CategoryTable({ categories, onDelete, isLoading }) {
   const [searchInput, setSearchInput] = useState('');
   const [seasonFilter, setSeasonFilter] = useState('');
 
@@ -65,7 +65,14 @@ export default function CategoryTable({ categories, onDelete }) {
               </tr>
             </thead>
             <tbody className="border-top-0">
-              {!filteredCategories.length ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan="4" className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status"></div>
+                    <p className="mb-0 mt-2" style={{ color: '#9CA3AF', fontSize: '14px' }}>Loading categories…</p>
+                  </td>
+                </tr>
+              ) : !filteredCategories.length ? (
                 <tr>
                   <td colSpan="4" className="text-center py-5">
                     <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#D1D5DB', display: 'block', marginBottom: '8px' }}></i>
@@ -74,7 +81,7 @@ export default function CategoryTable({ categories, onDelete }) {
                 </tr>
               ) : (
                 filteredCategories.map((item) => (
-                  <tr key={item.id} className="clt-row">
+                  <tr key={item._id} className="clt-row">
                     <td className="ps-4 py-3">
                       <div className="d-flex align-items-center gap-3">
                         <div className="clt-avatar">{item.name.charAt(0).toUpperCase()}</div>
@@ -84,12 +91,12 @@ export default function CategoryTable({ categories, onDelete }) {
                     <td className="text-center">
                       <span className="clt-badge" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>{item.season}</span>
                     </td>
-                    <td className="text-center clt-cell">{item.createdAt}</td>
+                    <td className="text-center clt-cell">{new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
                     <td className="pe-4 text-center">
                       <div className="d-flex gap-2 justify-content-center">
                         <button
                           className="clt-action-btn"
-                          onClick={() => onDelete(item.id)}
+                          onClick={() => onDelete(item._id)}
                           title="Delete category"
                         >
                           <i className="bi bi-trash3"></i>

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import MetricsCards from '../components/MetricsCards';
 import CallVolumeChart from '../components/CallVolumeChart';
 import SentimentBar from '../components/SentimentBar';
@@ -7,7 +8,8 @@ import WordBubble from '../components/WordBubble';
 import HorizontalBar from '../components/HorizontalBar';
 import JuryTable from '../components/JuryTable';
 import TopKeyWords from '../components/TopKeyWords';
-import { juries as initialJuries } from '../data/dashboardData';
+import { useJuries } from '../hooks/useQueries';
+import { deleteJury, assignJuryCategory } from '../util/api';
 
 const rowContainer = {
   hidden: {},
@@ -20,14 +22,25 @@ const colItem = {
 };
 
 export default function DashboardHome() {
-  const [juries, setJuries] = useState(initialJuries);
+  const queryClient = useQueryClient();
+  const { data: juries = [], isLoading } = useJuries();
 
-  const handleDelete = (id) => {
-    setJuries((prev) => prev.filter((item) => item.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      await deleteJury(id);
+      queryClient.invalidateQueries({ queryKey: ['juries'] });
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete jury member');
+    }
   };
 
-  const handleAssignCategory = (id, category) => {
-    setJuries((prev) => prev.map((item) => (item.id === id ? { ...item, category } : item)));
+  const handleAssignCategory = async (id, category) => {
+    try {
+      await assignJuryCategory(id, category);
+      queryClient.invalidateQueries({ queryKey: ['juries'] });
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to assign category');
+    }
   };
 
   return (
@@ -100,6 +113,7 @@ export default function DashboardHome() {
             onDelete={handleDelete}
             onAssignCategory={handleAssignCategory}
             viewAllHref="/dashboard/jury"
+            isLoading={isLoading}
           />
         </motion.div>
         {/* <div className="col-12 col-xl-4">

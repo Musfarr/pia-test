@@ -1,31 +1,42 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { categories as initialCategories, seasonOptions } from '../data/dashboardData';
+import { useQueryClient } from '@tanstack/react-query';
+import { seasonOptions } from '../data/dashboardData';
+import { useCategories } from '../hooks/useQueries';
+import { createCategory, deleteCategory } from '../util/api';
 import CategoryTable from '../components/CategoryTable';
 
 export default function Categories() {
-  const [categories, setCategories] = useState(initialCategories);
+  const queryClient = useQueryClient();
+  const { data: categories = [], isLoading } = useCategories();
   const [name, setName] = useState('');
   const [season, setSeason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim() || !season) return;
 
-    const newCategory = {
-      id: Date.now(),
-      name: name.trim(),
-      season,
-      createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-    };
-
-    setCategories((prev) => [newCategory, ...prev]);
-    setName('');
-    setSeason('');
+    setSubmitting(true);
+    try {
+      await createCategory({ name: name.trim(), season });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      setName('');
+      setSeason('');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create category');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    setCategories((prev) => prev.filter((item) => item.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      await deleteCategory(id);
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete category');
+    }
   };
 
   return (
@@ -71,8 +82,8 @@ export default function Categories() {
               </select>
             </div>
 
-            <button type="submit" className="cat-form-submit">
-              <i className="bi bi-plus-lg"></i> Add Category
+            <button type="submit" className="cat-form-submit" disabled={submitting}>
+              {submitting ? 'Adding...' : (<><i className="bi bi-plus-lg"></i> Add Category</>)}
             </button>
           </div>
         </form>
@@ -83,7 +94,7 @@ export default function Categories() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
       >
-        <CategoryTable categories={categories} onDelete={handleDelete} />
+        <CategoryTable categories={categories} onDelete={handleDelete} isLoading={isLoading} />
       </motion.div>
 
     </div>

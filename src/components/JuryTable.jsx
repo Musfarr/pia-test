@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { categories, juryTypes } from '../data/dashboardData';
+import { juryTypes } from '../data/dashboardData';
+import { useCategories } from '../hooks/useQueries';
 
-export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllHref }) {
+export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllHref, isLoading }) {
+  const { data: categories = [] } = useCategories();
   const [searchInput, setSearchInput] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
 
@@ -72,7 +74,14 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
               </tr>
             </thead>
             <tbody className="border-top-0">
-              {!filteredJuries.length ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan="5" className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status"></div>
+                    <p className="mb-0 mt-2" style={{ color: '#9CA3AF', fontSize: '14px' }}>Loading jury members…</p>
+                  </td>
+                </tr>
+              ) : !filteredJuries.length ? (
                 <tr>
                   <td colSpan="5" className="text-center py-5">
                     <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#D1D5DB', display: 'block', marginBottom: '8px' }}></i>
@@ -81,7 +90,7 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
                 </tr>
               ) : (
                 filteredJuries.map((item) => (
-                  <tr key={item.id} className="clt-row">
+                  <tr key={item._id} className="clt-row">
                     <td className="ps-4 py-3">
                       <div className="d-flex align-items-center gap-3">
                         <div className="clt-avatar" style={{ overflow: 'hidden' }}>
@@ -109,11 +118,11 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
                       <select
                         className="date-filter-select"
                         value={item.category || ''}
-                        onChange={(e) => onAssignCategory(item.id, e.target.value)}
+                        onChange={(e) => onAssignCategory(item._id, e.target.value)}
                       >
                         <option value="">Unassigned</option>
                         {categories.map((cat) => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                          <option key={cat._id} value={cat.name}>{cat.name}</option>
                         ))}
                       </select>
                     </td>
@@ -121,7 +130,7 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
                       <div className="d-flex gap-2 justify-content-center">
                         <button
                           className="clt-action-btn"
-                          onClick={() => onDelete(item.id)}
+                          onClick={() => onDelete(item._id)}
                           title="Delete jury member"
                         >
                           <i className="bi bi-trash3"></i>

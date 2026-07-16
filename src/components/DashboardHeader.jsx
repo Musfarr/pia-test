@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useDateRange } from '../context/DateRangeContext';
+import { useAuth } from '../context/AuthProvider';
 
 export default function DashboardHeader({ onLogout, onMobileMenuClick }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { startDate, endDate, setStartDate, setEndDate } = useDateRange();
+  const { user } = useAuth();
 
   useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -32,7 +34,7 @@ export default function DashboardHeader({ onLogout, onMobileMenuClick }) {
         </button>
 
         <div className='flex flex-col'>
-          <h3>Season overview</h3>
+          <h3>{user?.season ? `${user.season} Overview` : 'Overview'}</h3>
           {/* <p>Real-time overview of your AI conversational platform</p> */}
         </div>
       </div>

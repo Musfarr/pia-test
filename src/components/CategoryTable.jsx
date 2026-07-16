@@ -1,22 +1,18 @@
 import React, { useMemo, useState } from 'react';
-import { seasonOptions } from '../data/dashboardData';
 
 export default function CategoryTable({ categories, onDelete, isLoading }) {
   const [searchInput, setSearchInput] = useState('');
-  const [seasonFilter, setSeasonFilter] = useState('');
 
   const filteredCategories = useMemo(() => {
     const search = searchInput.trim().toLowerCase();
     return categories.filter((item) => {
-      const matchesSeason = !seasonFilter || item.season === seasonFilter;
       const matchesSearch = !search || item.name.toLowerCase().includes(search);
-      return matchesSeason && matchesSearch;
+      return matchesSearch;
     });
-  }, [categories, searchInput, seasonFilter]);
+  }, [categories, searchInput]);
 
   const clearFilters = () => {
     setSearchInput('');
-    setSeasonFilter('');
   };
 
   return (
@@ -24,7 +20,7 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
       <div className="clt-header">
         <div>
           <h6 className="clt-title">Categories</h6>
-          <p className="clt-subtitle">Manage all award categories across seasons</p>
+          <p className="clt-subtitle">Manage award categories for your season</p>
         </div>
         <div className="d-flex align-items-center gap-2 flex-wrap">
           <div className="clt-search-wrap">
@@ -37,16 +33,6 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
               onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
-          <select
-            className="date-filter-select"
-            value={seasonFilter}
-            onChange={(e) => setSeasonFilter(e.target.value)}
-          >
-            <option value="">Season: All</option>
-            {seasonOptions.map((season) => (
-              <option key={season} value={season}>{season}</option>
-            ))}
-          </select>
           <button className="clt-reset-btn" onClick={clearFilters}>
             <i className="bi bi-x-circle"></i> Reset
           </button>

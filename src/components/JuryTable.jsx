@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { juryTypes } from '../data/dashboardData';
 import { useCategories } from '../hooks/useQueries';
+import CategoryMultiSelect from './CategoryMultiSelect';
 
 export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllHref, isLoading }) {
   const { data: categories = [] } = useCategories();
@@ -115,33 +116,12 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
                     </td>
                     <td className="text-center clt-cell">{item.username}</td>
                     <td className="text-center">
-                      <div className="d-flex flex-wrap gap-1 justify-content-center">
-                        {categories.map((cat) => {
-                          const assigned = (item.categories || []).includes(cat.name);
-                          return (
-                            <button
-                              key={cat._id}
-                              type="button"
-                              className="clt-badge"
-                              style={{
-                                backgroundColor: assigned ? '#EEF4FF' : '#F3F4F6',
-                                color: assigned ? '#5006ba' : '#9CA3AF',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                padding: '4px 10px',
-                                borderRadius: '6px',
-                              }}
-                              onClick={() => onAssignCategory(item._id, cat.name)}
-                              title={assigned ? 'Click to unassign' : 'Click to assign'}
-                            >
-                              {cat.name}
-                            </button>
-                          );
-                        })}
-                        {categories.length === 0 && (
-                          <span style={{ color: '#9CA3AF', fontSize: '13px' }}>No categories available</span>
-                        )}
+                      <div className="d-flex justify-content-center">
+                        <CategoryMultiSelect
+                          categories={categories}
+                          selected={item.categories || []}
+                          onToggle={(catName) => onAssignCategory(item._id, catName)}
+                        />
                       </div>
                     </td>
                     <td className="pe-4 text-center">

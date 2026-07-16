@@ -1,413 +1,265 @@
-# PIA Influence Evaluation Engine — Master Plan (v2)
-**Stack:** React + Node/Express + MongoDB
-**This replaces v1.** Schemas kept intentionally minimal per your instruction — extend later once you're ready, not now.
+# PIA Influence Evaluation Engine — Master Plan (v4, Consolidated)
+**Stack:** React (Vite) + Node/Express + MongoDB (Mongoose)
+**Status of this document:** Supersedes v1/v2/v3 below. Those are kept at the bottom as historical record — this section is the one to build from.
 
 ---
 
-## 1. Roles (unchanged)
+## 1. What This Project Is
+
+PIA is an **awards/influence evaluation platform**. Nominees (influencers) are entered per category, scored across two jury rounds, then voted on by the public. The final winner is a weighted blend of jury + public scores — **not** the raw platform "Data Score", which exists only as reference material for the first jury round.
+
+**Pipeline:** Super Admin sets up categories & accounts → Category Admin populates nominee data & assigns jurors → Creator Jury scores all nominees off raw data → system auto-shortlists Top 10 → Executive Jury scores the Top 10 → system auto-shortlists Top 5 → Public votes via WhatsApp OTP on the Top 5 → Super Admin locks final results → Auditor reviews everything.
+
+### Roles
 
 | Role | Core Responsibility |
 |---|---|
-| **Super Admin** | Categories (+ creates Category Admin at the same time), nominee records, roles/permissions, monitors progress, audit logs, exports |
-| **Category Admin** | Manages nominee data within assigned categories, reviews AI screening, assigns jurors (no count limit — many-to-many) |
-| **Creator Jury** | Scores nominees off the inserted PDF data only. System auto-shortlists top 10 |
-| **Executive Jury** | Scores the system-shortlisted top 10. System auto-shortlists top 5 |
-| **Public User** | WhatsApp-OTP login, votes once per category across all categories on the final 5 |
-| **Auditor** | Read-only: login logs, creation logs, rating logs — one Logs collection |
+| **Super Admin** | Categories (+ creates linked Category Admin), nominee shells, jury accounts, stage control per category, weightage config, audit, exports |
+| **Category Admin** | Nominee data entry within assigned categories, AI screening review, jury assignment (many-to-many, no cap) |
+| **Creator Jury** | Scores nominees off inserted platform data only (no computed Data Score shown) |
+| **Executive Jury** | Scores the system-shortlisted Top 10 |
+| **Public User** | WhatsApp-OTP login, votes once per category on the final 5 |
+| **Auditor** | Read-only: login / creation / rating logs, one `Logs` collection |
+
+### Confirmed Business Rules
+
+1. **Weightage (final):** Creator Jury 30% + Executive Jury 40% + Audience 30%. Data Score is **excluded** from the final score — reference-only for Creator Jury.
+2. **Stage transitions are manual.** Super Admin explicitly clicks "Start Rating Period" → "Move to Executive Jury" → "Open Public Voting" → "Lock Results". Nothing auto-advances just because the last juror submitted.
+3. Category creation happens **together with** its Category Admin account (one form, one submit).
+4. Jury accounts are many-to-many with categories — no min/max.
+5. Nominee platform data (Instagram/Twitter/YouTube/etc.) will be extensive and differs per platform — a **skeleton structure** goes in now (`platforms: [{ platformType, isPrimary, data: Mixed }]`), real fields designed later. Primary platform shown by default; secondary platforms as extra tabs on the same screen.
+6. Public voting is WhatsApp OTP via the **client's own Broadcast API** — integration detail, not a design decision, blocked on credentials/docs.
 
 ---
 
-## 2. Confirmed Flow (v2 — all your answers folded in)
+## 2. Current Progress Snapshot (as of this plan)
 
-1. **Super Admin** creates a **Category** — name, season — and **in the same form** enters a username/password, which creates the **Category Admin** user account and links it via `categoryAdminId`. Category list shows the admin's username right there.
-2. **Super Admin** adds **Nominee** records (minimal — name + category link for now).
-3. **Category Admin**:
-   - Enters/updates each nominee's platform data (manually keyed from the PDF reports) — schema TBD later, kept out of scope right now.
-   - Reviews AI Screening flags.
-   - Assigns **Creator Jury** and **Executive Jury** members to their category — no limit, many categories can share the same juror and vice versa.
-4. **Creator Jury** logs in, sees nominees **exactly as the PDF data was entered** (no computed "Data Score" shown to them — raw metrics only), scores via rubric, submits.
-5. Once all assigned Creator Jurors submit, the **system automatically calculates the average score and ranks nominees, auto-selecting the top 10** — no manual jury override.
-6. **Executive Jury** logs in, sees the system-generated **Top 10** directly, clicks a nominee → goes to the rating screen, scores, submits.
-7. Once all assigned Executive Jurors submit, the **system automatically ranks and selects the top 5** for public voting.
-8. **Public User** logs in via **WhatsApp OTP** (phone number → OTP sent over WhatsApp → verified), then can vote once per category, across every category.
-9. **Final Score = Creator Jury + Executive Jury + Public Vote only.** Data Score is **excluded** from the final winner calculation — it exists purely as reference data Category Admin enters and Creator Jury looks at, not as a scored input.
-10. **Auditor** sees everything via one **Logs** collection: who logged in and when, who created what, who rated what for whom.
+This is graded honestly against the schema/plan above so nothing gets silently skipped.
 
----
+### Backend (`PIA-backend`)
+| Area | Status | Notes |
+|---|---|---|
+| Express + Mongoose setup | ✅ Done | `app.js`, `index.js`, `config/db.js` |
+| Auth (`/api/register`, `/api/login`) | ✅ Done | JWT (`x-auth-token` header), 10h expiry. **No role-based route guard** — `protect` middleware only checks the token is valid, not the caller's role. |
+| `User` model | ⚠️ Partial | Has `name, email, password, role, season` — matches plan loosely, but has no `assignedCategoryIds`, `phone`, or `status` fields yet. |
+| `Category` model + CRUD | ✅ Mostly done | Has `stage` enum already. Combined admin-account creation on `createCategory` works, but is **not wrapped in a Mongo transaction** — if `Category.create` fails after `User.create` succeeds, you get an orphaned admin user. |
+| `Jury` model + CRUD | ⚠️ Deviates from plan | Jury is a **separate collection** with its own `username/password`, duplicated into `Users` on create/update/delete to allow login. This is data duplication/drift risk instead of the planned single `User` model with `role: creator_jury / executive_jury`. Also `categories` is stored as an **array of category name strings**, not `ObjectId` refs — renaming a category silently breaks every assignment. |
+| `Nominee` model/CRUD | ❌ Not started | Phase 1 blocker — nothing exists yet. |
+| `ScoringWeightage`, `Logs`, `JuryScore`, `Shortlist`, `Voter`, `PublicVote`, `FinalResult` | ❌ Not started | All of Phases 3–5 backend work is pending. |
+| Stage transition API (`/categories/:id/stage/advance`) | ❌ Not started | `Category.stage` field exists but nothing reads/writes it yet. |
+| Multer config | 🟡 Present, unused | `config/multer.js` exists but jury photo upload currently goes through base64 in the request body, not multer. |
 
-## 3. Data Model (minimal, per your direction)
+### Frontend (`PIA-frontend`)
+| Area | Status | Notes |
+|---|---|---|
+| Login + `AuthProvider` (localStorage token/user) | ✅ Done | Email/password only — WhatsApp OTP is an entirely separate, unbuilt flow for Phase 5 (Public User isn't even the same app surface). |
+| Dashboard shell (`Sidebar`, `DashboardHeader`, layout) | ✅ Done | Nav currently only has **Overview / Categories / Jury** — will need Nominee, Stage Control, Scoring, Shortlist, Voting, Results, Audit Log added incrementally. |
+| Categories screen | ✅ Done | Create form + admin username/password, table with search/season filter, delete. Matches Phase 1 spec. |
+| Jury screen | ✅ Done | Create form (name/type/username/password/photo), table with search/type filter, category assignment via toggle badges, delete. **No dedicated "Jury Assignment" screen** — assignment is inline in the Jury table rather than scoped to a Category Admin's assigned categories per the plan. |
+| Dashboard Overview (`DashboardHome`) | ⚠️ Mostly placeholder | `MetricsCards` shows **hardcoded mock numbers** (`dashboardData.js`: "Total Nominees: 47", "Total Jurors: 6", etc.), not live API data. `CallVolumeChart`, `SentimentBar`, `WordBubble`, `HourlyAnalyticsChart`, `TopKeyWords`, `CallLogTable` are **leftover components from an unrelated prior project** (`package.json` name is still `voice-admin` / backend is `unilever-campaign-backend` — a call-center/voice-campaign dashboard template that was repurposed). Most are commented out in JSX but still present in the codebase. |
+| Nominee screens | ❌ Not started | |
+| Scoring / Shortlist / Voting / Results / Audit screens | ❌ Not started | |
 
-```js
-// User
-User {
-  name, email (unique), phone, passwordHash,
-  role: enum ['super_admin','category_admin','creator_jury','executive_jury','auditor'],
-  assignedCategoryIds: [ObjectId ref Category],  // many-to-many, no limit
-  status: enum ['active','inactive'],
-  createdAt, updatedAt
-}
-
-// Category — trimmed to your version
-Category {
-  name: { type: String, required: true },
-  season: { type: String, required: true },
-  categoryAdminId: ObjectId ref User,
-  createdAt, updatedAt
-}
-// NOTE: on POST, backend creates the Category AND the User(role: category_admin) in one transaction,
-// using the username/password submitted from the same form, then sets categoryAdminId.
-
-// Nominee — minimal, as requested. Platform/metric fields deferred to later.
-Nominee {
-  name: { type: String, required: true },
-  categoryId: ObjectId ref Category,
-  createdAt, updatedAt
-}
-
-// JuryScore — separate schema tied to nominee, as you said
-JuryScore {
-  nomineeId: ObjectId ref Nominee,
-  categoryId: ObjectId ref Category,
-  jurorId: ObjectId ref User,
-  stage: enum ['creator','executive'],
-  criteriaScores: Map,        // { criterionName: points }
-  totalScore: Number,
-  comments: String,
-  status: enum ['draft','submitted'],
-  submittedAt,
-  createdAt
-}
-
-// Shortlist — auto-generated snapshot once a stage's scoring is complete
-Shortlist {
-  categoryId: ObjectId ref Category,
-  stage: enum ['top10','top5'],
-  nomineeId: ObjectId ref Nominee,
-  avgScore: Number,
-  rank: Number,
-  computedAt
-}
-
-// Voter — public, WhatsApp-OTP based
-Voter {
-  phone: { type: String, unique: true },
-  name: String,             // optional, TBD — see open questions
-  otpVerified: Boolean,
-  createdAt
-}
-
-// PublicVote
-PublicVote {
-  categoryId: ObjectId ref Category,
-  nomineeId: ObjectId ref Nominee,
-  voterId: ObjectId ref Voter,
-  createdAt
-}
-// unique index on {categoryId, voterId} enforces one vote per category per voter
-
-// FinalResult
-FinalResult {
-  categoryId: ObjectId ref Category,
-  nomineeId: ObjectId ref Nominee,
-  creatorJuryScore, executiveJuryScore, publicVoteScore,
-  finalScore, rank,
-  lockedAt
-}
-
-// Logs — single generic collection for the Auditor role
-Logs {
-  userId: ObjectId ref User,      // null for public voter actions
-  action: String,                 // 'login' | 'category.create' | 'nominee.create' | 'score.submit' | 'vote.cast' etc.
-  targetType: String,
-  targetId: ObjectId,
-  metadata: Mixed,                // e.g. { ratedNomineeId, score } for a rating action
-  createdAt
-}
-```
-**7 collections.** No `AIScreeningFlag` schema written yet either — you didn't ask for it to be built out this round, so it's deferred along with the platform/metrics fields on Nominee. Flag if you want it scaffolded now.
+**Bottom line:** what's built so far is roughly **half of Phase 1** from the old v3 plan (Category CRUD ✅, User/Jury management ⚠️ built but off-model, RBAC ❌, Nominee ❌). Everything from Phase 2 onward is a clean slate.
 
 ---
 
-## 4. Screens (only the parts that changed from v1)
+## 3. Final Data Model (target state — consolidate to this)
 
-- **Category screen**: create form now includes **Category Admin Username** + **Category Admin Password** fields alongside name/season. List table adds an **Admin** column showing that username.
-- **Jury Assignment screen**: no min/max enforcement — just an add/remove multi-select, category-scoped, pulling from Users filtered by role.
-- **Creator Jury → "Finalize Top 10"** is no longer a manual action screen. Rename to **"Shortlist Status"** — read-only, shows live ranking, flips to "Top 10 Locked" automatically once every assigned juror has submitted.
-- **Executive Jury → "My Finalists"** just loads `Shortlist` where `stage: 'top10'` directly — no admin/jury action needed to see it.
-- **Executive Jury → "Finalize Top 5"** same pattern — auto-generated, read-only, becomes the public voting list once complete.
-- **Public login** is now phone number → WhatsApp OTP, not email/SMS.
-- Everything else from v1 (Nominee list, AI Screening Review, Scoring Panel, Audit viewer) is unchanged in shape, just pointed at the trimmed schemas above.
-
----
-
-## 5. Open Questions (new, from this round's answers)
-
-1. **Weightage values/location** — with Data Score excluded, the final formula needs Creator Jury / Executive Jury / Public Vote weights (e.g. 40/40/20?). Since you removed `weightage` from Category, where should this live — a single global config, or still per-category later? What are the actual percentages?
-2. **WhatsApp OTP provider** — Twilio WhatsApp API, Meta Cloud API, Gupshup, or another? This determines the integration, not just the schema.
-3. **Voter identity** — is phone number alone enough to create a `Voter` record, or do you still want name/email captured at WhatsApp-OTP signup?
-4. **Stage tracking on Category** — you trimmed `status` out of the Category schema. The UI still needs to know which round is active (e.g. Executive Jury shouldn't see anything until Creator Jury's top 10 exists). Fine to add one small `stage` field back in for this, or do you want the frontend to infer it by querying `Shortlist`/`JuryScore` state instead of storing it?
-5. **Auto-publish trigger** — once the last juror in a stage submits, does the system flip to the next stage **instantly and automatically**, or does a Category Admin/Super Admin still need to click something to open the next round?
-6. **Nominee "PDF data" fields** — you said Nominee stays minimal for now. When you're ready to add the platform/metrics fields, do you want them embedded on Nominee (one array) or their own collection? No need to answer now — just flagging it's the next thing to design once you're ready.
-
----
-
-## 6. Build Order (updated)
-
-1. Auth (incl. WhatsApp OTP stub) + User Management
-2. Category CRUD (with combined Category Admin creation)
-3. Nominee CRUD (minimal)
-4. Jury Assignment (no-limit many-to-many)
-5. Creator Jury scoring → auto top-10 shortlist logic
-6. Executive Jury scoring → auto top-5 shortlist logic
-7. Public voting (WhatsApp OTP + one-vote-per-category)
-8. Final Result calc (Creator + Executive + Public only) + Logs + Reports
-
-
-
-
-
-# PIA Influence Evaluation Engine — Master Plan (v3, Phased)
-**Stack:** React + Node/Express + MongoDB
-
----
-
-## 0. Confirmed Since v2
-
-- **Weightage (final):** Creator Jury 30% + Executive Jury 40% + Audience 30%. Data Score stays excluded. Stored as **one global config document**, not per-category (no per-category override requested).
-- **Stage transitions are manual** — Super Admin explicitly clicks to start each round (Start Rating Period → Move to Executive Jury → Open Public Voting). Nothing auto-advances just because the last juror submitted.
-- **`stage` field added back to Category** — confirmed needed.
-- **WhatsApp OTP** — client has their own Broadcast API already; integration point, not a design decision. Need the API docs/credentials before Phase 4.
-- **Nominee platform data** — will be a lot, differs per platform (Instagram ≠ Twitter ≠ YouTube). Real fields deferred, but a **skeleton structure** goes in now so Phase 2 has somewhere to grow into.
-- **Primary/secondary handles** — nominee profile defaults to showing the primary platform's data; secondary platforms exist as additional tabs on the same screen.
-- **Jury creation** — Creator Jury and Executive Jury accounts created under their respective role; a single juror can be attached to multiple categories (many-to-many, no cap).
-
----
-
-## 1. Roles (unchanged)
-
-| Role | Responsibility |
-|---|---|
-| Super Admin | Categories (+creates linked Category Admin), nominee shells, jury accounts, stage control, weightage config, audit, exports |
-| Category Admin | Nominee data entry within assigned categories, AI screening review, jury assignment to their category |
-| Creator Jury | Rates 20 nominees per category off inserted data only |
-| Executive Jury | Rates the system-shortlisted top 10 |
-| Public User | WhatsApp-OTP login, votes once per category on the final 5 |
-| Auditor | Read-only: login / creation / rating logs |
-
----
-
-## 2. Confirmed Rating & Voting Flow
-
-```
-Super Admin clicks "Start Rating Period"
-   → Category enters stage: creator_rating
-   → Creator Jury sees their assigned 20 nominees, rates each
-   → (all Creator Jury for that category submit)
-
-Super Admin clicks "Move to Executive Jury"
-   → System computes avg score, auto-shortlists Top 10 → Shortlist(stage:'top10')
-   → Category enters stage: executive_rating
-   → Executive Jury sees the Top 10, clicks in, rates each
-   → (all Executive Jury for that category submit)
-
-Super Admin clicks "Open Public Voting"
-   → System computes avg score, auto-shortlists Top 5 → Shortlist(stage:'top5')
-   → Category enters stage: public_voting
-   → Public logs in via WhatsApp OTP, votes 1 nominee per category
-
-Super Admin locks results
-   → FinalScore = (CreatorJuryAvg × 0.30) + (ExecutiveJuryAvg × 0.40) + (PublicVote × 0.30)
-   → Category enters stage: completed
-```
-Every stage transition is a Super Admin action — nothing auto-advances.
-
----
-
-## PHASE 1 — Core CRUD & Setup
-*Goal: everyone can log in, categories+admins exist, nominee shells exist, jurors are created and assigned. No rating logic yet.*
-
-### Schemas
 ```js
 User {
   name, email (unique), phone, passwordHash,
   role: enum ['super_admin','category_admin','creator_jury','executive_jury','auditor'],
-  assignedCategoryIds: [ObjectId ref Category],
+  assignedCategoryIds: [ObjectId ref Category],   // many-to-many, no limit — replaces string-array on Jury
   status: enum ['active','inactive'],
   createdAt, updatedAt
 }
+// NOTE: Jury should be folded into User (role: creator_jury/executive_jury) instead of
+// staying a separate mirrored collection — removes the current dual-write drift risk.
 
 Category {
-  name: { type: String, required: true },
-  season: { type: String, required: true },
+  name, season,
   categoryAdminId: ObjectId ref User,
-  stage: { type: String, enum: ['setup','creator_rating','executive_rating','public_voting','completed'], default: 'setup' },
+  stage: enum ['setup','creator_rating','executive_rating','public_voting','completed'],
   createdAt, updatedAt
 }
-// POST creates Category + linked User(role:'category_admin') in one transaction
+// POST creates Category + linked User(role:'category_admin') in one transaction (use a Mongo session).
 
 Nominee {
-  name: { type: String, required: true },
-  categoryId: ObjectId ref Category,
+  name, categoryId: ObjectId ref Category,
+  profileStatus: enum ['draft','complete'],
+  platforms: [{ platformType: enum [...], isPrimary: Boolean, data: Mixed }],  // skeleton, real fields TBD
   createdAt, updatedAt
 }
 
 ScoringWeightage {   // singleton, seeded once
-  creatorJury: { type: Number, default: 30 },
-  executiveJury: { type: Number, default: 40 },
-  audienceVote: { type: Number, default: 30 },
+  creatorJury: Number (default 30),
+  executiveJury: Number (default 40),
+  audienceVote: Number (default 30),
   updatedAt
 }
 
-Logs {
-  userId: ObjectId ref User,
-  action: String,          // 'login' | 'category.create' | 'user.create' | 'nominee.create' etc.
-  targetType, targetId,
-  metadata: Mixed,
-  createdAt
-}
-```
-
-### Screens
-- Login (all roles)
-- Super Admin → **Category** (list + create/edit, one page): name, season, Category Admin username, Category Admin password. List shows admin username + stage badge.
-- Super Admin → **User/Jury Management** (list + create/edit): name, email, phone, role dropdown (Category Admin / Creator Jury / Executive Jury / Auditor), status.
-- Super Admin/Category Admin → **Nominee** (list + create): name, category. Minimal for now.
-- Category Admin → **Jury Assignment**: add/remove jurors per category, filtered by role, no count limit.
-
-### APIs
-`POST/GET /api/auth/*` · `GET/POST/PUT /api/categories` (transactional admin creation) · `GET/POST/PUT /api/users` · `GET/POST /api/nominees` · `POST/DELETE /api/categories/:id/jury-assignment`
-
----
-
-## PHASE 2 — Nominee Data Population
-*Goal: build the profile-completion screens. Nominee data can be saved as draft and edited/finished later. Platform tabs are skeletal — structure only, real fields added once you design them.*
-
-### Schema addition
-```js
-Nominee {
-  // ...Phase 1 fields
-  profileStatus: { type: String, enum: ['draft','complete'], default: 'draft' },
-  platforms: [{
-    platformType: { type: String, enum: ['instagram','twitter','youtube','tiktok','facebook'] },
-    isPrimary: { type: Boolean, default: false },
-    data: Schema.Types.Mixed    // placeholder — real per-platform fields designed later
-  }]
-}
-```
-
-### Screens
-- **Nominee Profile Edit** — tabbed by platform. Primary platform's tab is shown/selected by default; secondary platforms appear as additional tabs on the same screen. Each tab currently just has a generic data block (placeholder fields) since the real per-platform schema isn't designed yet.
-- **Save Draft / Save & Continue Later** — button on the profile edit screen; doesn't require all tabs filled to save.
-- Nominee list updates to show `profileStatus` (draft/complete) as a column/filter.
-
-### APIs
-`PUT /api/nominees/:id/platforms/:platformType` (upsert one platform's data block) · `PUT /api/nominees/:id/profile-status`
-
-### Not building yet
-Actual Instagram/Twitter/YouTube-specific field sets — flagged for a follow-up design pass once you're ready, not blocking Phase 1/2 structurally.
-
----
-
-## PHASE 3 — Rating Screens (Creator Jury + Executive Jury)
-*Goal: get scoring working end-to-end. Screens are minimal now — expect them to grow once Phase 2's real nominee fields exist, since jurors will eventually see more data on the same screen.*
-
-### Schemas
-```js
 JuryScore {
-  nomineeId: ObjectId ref Nominee,
-  categoryId: ObjectId ref Category,
-  jurorId: ObjectId ref User,
+  nomineeId, categoryId, jurorId: ObjectId refs,
   stage: enum ['creator','executive'],
-  criteriaScores: Map,       // { criterionName: points }
-  totalScore: Number,
-  comments: String,
-  status: enum ['draft','submitted'],
-  submittedAt, createdAt
+  criteriaScores: Map, totalScore: Number, comments: String,
+  status: enum ['draft','submitted'], submittedAt, createdAt
 }
 
 Shortlist {
-  categoryId: ObjectId ref Category,
+  categoryId, nomineeId: ObjectId refs,
   stage: enum ['top10','top5'],
-  nomineeId: ObjectId ref Nominee,
-  avgScore: Number,
-  rank: Number,
-  computedAt
+  avgScore: Number, rank: Number, computedAt
 }
-```
 
-### Screens
-- Super Admin → **Stage Control** (per category): shows current `stage`, buttons — "Start Rating Period," "Move to Executive Jury," "Open Public Voting" — each only enabled once the prior round's submissions are in (soft gate, admin can still force it).
-- Creator Jury → **My Nominees** (20 per category, from whatever's in Phase 2's `platforms` data, however complete it is at the time), **Scoring Panel** (criteria inputs + comments + submit).
-- Executive Jury → **My Finalists** (reads `Shortlist` where `stage:'top10'`, read-only until Admin opens the round), **Scoring Panel** (same pattern).
-
-### APIs
-`POST /api/jury-scores/draft` · `POST /api/jury-scores/submit` · `POST /api/categories/:id/stage/advance` (Super Admin only — computes `Shortlist` and flips `Category.stage`)
-
----
-
-## PHASE 4 — Public Voting
-*Goal: public-facing screens, WhatsApp OTP via your Broadcast API, one vote per nominee per category on the final 5.*
-
-### Schemas
-```js
 Voter {
-  phone: { type: String, unique: true },
-  name: String,           // capture at signup? — open question, see below
-  otpVerified: Boolean,
-  createdAt
+  phone: { unique: true }, name, otpVerified: Boolean, createdAt
 }
 
 PublicVote {
-  categoryId: ObjectId ref Category,
-  nomineeId: ObjectId ref Nominee,
-  voterId: ObjectId ref Voter,
-  createdAt
+  categoryId, nomineeId, voterId: ObjectId refs, createdAt
 }
-// unique index { categoryId, voterId } enforces one vote per category per voter
-```
+// unique index { categoryId, voterId } → one vote per category per voter
 
-### Screens
-- **Public Landing** — all categories, each showing its `Shortlist(stage:'top5')`.
-- **WhatsApp OTP Login** — phone number → OTP via Broadcast API → verify.
-- **Vote Flow** — pick 1 nominee per category, confirmation screen.
-- **My Votes** — which categories already voted in.
-
-### APIs
-`POST /api/vote/otp/send` (Broadcast API integration) · `POST /api/vote/otp/verify` · `POST /api/vote` · `GET /api/vote/my-votes`
-
-### Prerequisite before building
-Broadcast API docs/credentials from client — this is an integration blocker, not a design one.
-
----
-
-## PHASE 5 — Results, Weightage & Audit
-*Goal: close the loop — final scoring, audit visibility, exports.*
-
-### Schema
-```js
 FinalResult {
-  categoryId: ObjectId ref Category,
-  nomineeId: ObjectId ref Nominee,
+  categoryId, nomineeId: ObjectId refs,
   creatorJuryScore, executiveJuryScore, publicVoteScore,
-  finalScore, rank,
-  lockedAt
+  finalScore, rank, lockedAt
+}
+
+Logs {
+  userId: ObjectId ref User,   // null for public voter actions
+  action: String,              // 'login' | 'category.create' | 'score.submit' | 'vote.cast' etc.
+  targetType, targetId, metadata: Mixed, createdAt
 }
 ```
-
-### Screens
-- Super Admin → **Final Results**: per category, shows the 30/40/30 breakdown per finalist, "Lock Results" button.
-- Auditor/Super Admin → **Logs Viewer**: filter by user/action/entity/date, exportable.
-- Super Admin → **Reports & Exports**: winner sheet, category scorecards, jury completion report — CSV/PDF.
-
-### APIs
-`POST /api/categories/:id/results/calculate` (applies `ScoringWeightage`) · `POST /api/categories/:id/results/lock` · `GET /api/audit-logs` · `GET /api/reports/:type`
+**10 collections** once `Jury` is folded into `User`. Nominee's `platforms.data` and the AI-screening flag schema stay deferred by design — flagged, not blocking.
 
 ---
 
-## Remaining Open Questions
+## 4. Phases (organized by role, in pipeline order)
 
-1. **Voter identity** — is phone number + OTP alone enough to create a `Voter`, or do you want name captured too at signup?
+### Phase 0 — Foundation Fixes *(do this before Phase 2 work, it's cheap now and expensive later)*
+Not a role phase — closes gaps in what's already built so later phases don't inherit them.
+- Add **role-based authorization middleware** (`requireRole('super_admin', ...)`) on top of `protect`; currently any authenticated user can call any endpoint.
+- Wrap `createCategory`'s admin-user + category creation in a Mongo transaction (session) so a failure can't orphan a `User` record.
+- Decide now: fold `Jury` into `User` (role: `creator_jury`/`executive_jury`) and switch `categories` from name-strings to `assignedCategoryIds: [ObjectId]`, or explicitly accept the current dual-collection design permanently. Recommend folding — it directly unblocks Phase 3/4 scoring queries (`JuryScore.jurorId` needs to point at a real user record) and removes the rename-breaks-assignment bug.
+- Remove or relocate the leftover call-center dashboard components (`CallLogTable`, `CallVolumeChart`, `SentimentBar`, `WordBubble`, `HourlyAnalyticsChart`, `TopKeyWords`) and replace `dashboardData.js` mock metrics with live counts once real collections exist. Low urgency but do it before Overview becomes a real dashboard in Phase 2, to avoid stacking new widgets on top of dead code.
+
+### Phase 1 — Super Admin: Setup & Control
+*Goal: accounts, categories, nominee shells, jury accounts all exist. No rating logic yet.*
+
+| | Status |
+|---|---|
+| Category CRUD + linked admin creation | ✅ Done (needs Phase 0 transaction fix) |
+| User/Jury management on the unified `User` model | ⚠️ Rework — currently the separate `Jury` collection |
+| Nominee shell CRUD (name + category link) | ❌ To build |
+| `ScoringWeightage` singleton (seed 30/40/30) | ❌ To build |
+| Stage field on Category | ✅ Schema done, 🔲 no control UI/API yet |
+
+**Screens:** Category (done) · User/Jury Management (rework onto unified model) · Nominee list+create (new) · Weightage config (new, Super Admin only, likely a simple settings screen).
+**APIs:** existing `/categories`, `/juries` (migrate to `/users?role=...`) · new `GET/POST /api/nominees` · new `GET/PUT /api/weightage`.
+
+### Phase 2 — Category Admin: Nominee Data & Jury Assignment
+*Goal: profile-completion screens for nominees; jury assignment scoped to a Category Admin's own categories.*
+
+- `Nominee.platforms` skeleton (per §3) + `profileStatus` draft/complete.
+- **Nominee Profile Edit** screen — tabbed by platform, primary tab shown by default, "Save Draft" doesn't require all tabs filled.
+- **Jury Assignment** screen, scoped by category (replaces the current global toggle-grid in the Jury table) — Category Admin only sees/assigns within `req.user.assignedCategoryIds`.
+- AI Screening Review screen — still deferred per original plan (no `AIScreeningFlag` schema written yet; flag if you want it scaffolded).
+**APIs:** `PUT /api/nominees/:id/platforms/:platformType` · `PUT /api/nominees/:id/profile-status` · `POST/DELETE /api/categories/:id/jury-assignment`.
+
+### Phase 3 — Creator Jury: Round 1 Scoring
+*Goal: Creator Jury can score; Super Admin can open/close the round; system auto-shortlists Top 10.*
+
+- `JuryScore` + `Shortlist` schemas.
+- Super Admin → **Stage Control** screen (per category): "Start Rating Period" button, live status.
+- Creator Jury → **My Nominees** (their assigned category's nominees, raw platform data only, no Data Score shown) → **Scoring Panel** (criteria inputs, comments, draft/submit).
+- Super Admin → "Move to Executive Jury" button computes avg scores → writes `Shortlist(stage:'top10')` → flips `Category.stage`.
+**APIs:** `POST /api/jury-scores/draft` · `POST /api/jury-scores/submit` · `POST /api/categories/:id/stage/advance`.
+
+### Phase 4 — Executive Jury: Round 2 Scoring
+*Goal: same pattern as Phase 3, scoped to the Top 10.*
+
+- Executive Jury → **My Finalists** (reads `Shortlist` where `stage:'top10'`, locked/read-only until Super Admin opens the round) → same **Scoring Panel** component reused from Phase 3.
+- Super Admin → "Open Public Voting" button computes avg scores → writes `Shortlist(stage:'top5')` → flips `Category.stage`.
+
+### Phase 5 — Public User: WhatsApp OTP Voting
+*Goal: separate public-facing surface (likely its own small app/route group, not behind the admin dashboard login).*
+**Blocked on:** client's Broadcast API docs/credentials — integration blocker, not a design one. Do not start build until credentials are in hand.
+
+- `Voter`, `PublicVote` schemas.
+- **Public Landing** — categories with their `Shortlist(stage:'top5')`.
+- **WhatsApp OTP Login** — phone → OTP via Broadcast API → verify.
+- **Vote Flow** — one nominee per category, confirmation screen.
+- **My Votes** — which categories already voted in.
+**APIs:** `POST /api/vote/otp/send` · `POST /api/vote/otp/verify` · `POST /api/vote` · `GET /api/vote/my-votes`.
+
+### Phase 6 — Auditor & Final Results
+*Goal: close the loop — weighted final score, audit trail, exports.*
+
+- `FinalResult`, `Logs` schemas. `Logs` should actually start being written from Phase 0 onward (login events at minimum) rather than bolted on retroactively — cheapest to wire in as each action is built.
+- Super Admin → **Final Results**: 30/40/30 breakdown per finalist, "Lock Results" button.
+- Auditor/Super Admin → **Logs Viewer**: filter by user/action/entity/date, exportable.
+- Super Admin → **Reports & Exports**: winner sheet, category scorecards, jury completion report (CSV/PDF — `xlsx` package is already a backend dependency, unused so far).
+**APIs:** `POST /api/categories/:id/results/calculate` · `POST /api/categories/:id/results/lock` · `GET /api/audit-logs` · `GET /api/reports/:type`.
+
+---
+
+## 5. Screens Inventory (status at a glance)
+
+| Screen | Role | Status |
+|---|---|---|
+| Login | All | ✅ Done (email/password only) |
+| Category list/create | Super Admin | ✅ Done |
+| User/Jury Management | Super Admin | ⚠️ Built off-model, needs rework onto unified `User` |
+| Nominee list/create (shell) | Super Admin | ❌ Not started |
+| Weightage config | Super Admin | ❌ Not started |
+| Stage Control | Super Admin | ❌ Not started (schema field exists) |
+| Nominee Profile Edit (tabbed) | Category Admin | ❌ Not started |
+| Jury Assignment (category-scoped) | Category Admin | ⚠️ Exists inline, not scoped/dedicated |
+| AI Screening Review | Category Admin | ❌ Deferred by design |
+| My Nominees + Scoring Panel | Creator Jury | ❌ Not started |
+| My Finalists + Scoring Panel | Executive Jury | ❌ Not started |
+| Public Landing / OTP Login / Vote Flow / My Votes | Public User | ❌ Not started, blocked on Broadcast API creds |
+| Final Results | Super Admin | ❌ Not started |
+| Logs Viewer | Auditor | ❌ Not started |
+| Reports & Exports | Super Admin | ❌ Not started |
+| Dashboard Overview | All (admin roles) | ⚠️ Mock data + leftover unrelated widgets, needs real metrics once collections exist |
+
+---
+
+## 6. Open Questions (unresolved, carried forward)
+
+1. **Voter identity** — is phone + OTP alone enough to create a `Voter`, or capture name too at signup?
 2. **Tie-break rule** — if two nominees land on the exact same final score, how is the winner decided?
-3. **Stage rollback** — can Super Admin move a category *backward* (e.g. reopen Creator Jury rating after already moving to Executive Jury) if a mistake is found? Should it require a logged reason?
-4. **Broadcast API details** — need the actual docs/credentials/sender ID before Phase 4 work starts.
-5. **Per-platform nominee fields** — still to be designed together (Instagram vs Twitter vs YouTube field sets) before Phase 2's tabs get real content — flagged, not blocking now.
+3. **Stage rollback** — can Super Admin move a category *backward* (e.g. reopen Creator Jury rating after already moving to Executive Jury)? Should it require a logged reason?
+4. **Broadcast API details** — need actual docs/credentials/sender ID before Phase 5 work starts.
+5. **Per-platform nominee fields** — Instagram vs Twitter vs YouTube field sets still to be designed before Phase 2's tabs get real content.
+6. **Jury/User consolidation call** — confirm you want Phase 0's fold of `Jury` into `User` (recommended) rather than keeping the current dual-collection approach.
+
+---
+
+## 7. Recommended Immediate Next Steps
+
+1. Decide on the Phase 0 items (role middleware, transaction fix, Jury→User fold) — these are small now, painful to retrofit once Scoring/Shortlist logic references `jurorId`.
+2. Build Nominee shell CRUD (Phase 1) — it's the one missing piece blocking everything downstream (jury scoring has nothing to score without it).
+3. Chase down Broadcast API credentials in parallel — it's the only external dependency and the biggest schedule risk if left to Phase 5.
+
+---
+---
+
+# Historical Record — Superseded Drafts (v1/v2/v3)
+
+*Kept for reference only. Do not build against this section — see the consolidated plan above.*
+
+## v2 highlights
+- 7-collection minimal schema (User, Category, Nominee, JuryScore, Shortlist, Voter, PublicVote, FinalResult, Logs).
+- Stage transitions were still open — later confirmed manual in v3.
+- Weightage location was an open question — later confirmed as a global `ScoringWeightage` singleton (30/40/30) in v3.
+
+## v3 highlights
+- Introduced explicit 5-phase build order (Core CRUD → Nominee Data → Rating → Public Voting → Results/Audit).
+- Confirmed weightage 30/40/30, manual stage transitions, `stage` field back on Category, WhatsApp OTP via client's own Broadcast API, nominee platform skeleton with primary/secondary tabs.
+
+*(Full original v2/v3 text has been superseded and removed from this file to avoid duplication — the consolidated sections above fold in every confirmed decision from both.)*

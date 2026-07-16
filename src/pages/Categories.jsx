@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { seasonOptions } from '../data/dashboardData';
+import { useAuth } from '../context/AuthProvider';
 import { useCategories } from '../hooks/useQueries';
 import { createCategory, deleteCategory } from '../util/api';
 import CategoryTable from '../components/CategoryTable';
 
 export default function Categories() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { data: categories = [], isLoading } = useCategories();
   const [name, setName] = useState('');
-  const [season, setSeason] = useState('');
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminPassword, setShowAdminPassword] = useState(false);
@@ -18,19 +18,17 @@ export default function Categories() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !season) return;
+    if (!name.trim()) return;
 
     setSubmitting(true);
     try {
       await createCategory({
         name: name.trim(),
-        season,
         adminUsername: adminUsername.trim(),
         adminPassword,
       });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       setName('');
-      setSeason('');
       setAdminUsername('');
       setAdminPassword('');
     } catch (err) {
@@ -59,7 +57,9 @@ export default function Categories() {
         transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
       >
         <h6 className="cat-form-title">Create Category</h6>
-        <p className="cat-form-subtitle">Add a new award category and assign it to a season</p>
+        <p className="cat-form-subtitle">
+          Add a new award category for <strong>{user?.season || 'your season'}</strong>
+        </p>
 
         <form onSubmit={handleSubmit}>
           <div className="cat-form-row">
@@ -74,22 +74,6 @@ export default function Categories() {
                 onChange={(e) => setName(e.target.value)}
                 required
               />
-            </div>
-
-            <div className="cat-form-field">
-              <label className="cat-form-label" htmlFor="category-season">Season</label>
-              <select
-                id="category-season"
-                className="cat-form-select"
-                value={season}
-                onChange={(e) => setSeason(e.target.value)}
-                required
-              >
-                <option value="" disabled>Select season</option>
-                {seasonOptions.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
             </div>
 
             <div className="cat-form-field">

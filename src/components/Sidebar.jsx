@@ -2,14 +2,9 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthProvider';
+import { getNavItems, getRoleLabel } from '../util/roles';
 import logo from '../assets/logow.png'
 import logosm from '../assets/logosm.png'
-
-const navItems = [
-  { href: '/dashboard', label: 'Overview', icon: GridIcon },
-  { href: '/dashboard/categories', label: 'Categories', icon: TagIcon },
-  { href: '/dashboard/jury', label: 'Jury', icon: PersonIcon },
-];
 
 const fadeSlide = {
   initial: { opacity: 0, x: -8 },
@@ -20,6 +15,8 @@ const fadeSlide = {
 
 export default function Sidebar({ isCollapsed, isMobileOpen, onToggle, onMobileClose, onLogout }) {
   const { user } = useAuth();
+  const navItems = getNavItems(user?.role);
+  const roleLabel = getRoleLabel(user?.role);
   const [showLogout, setShowLogout] = useState(false);
   const handleNavClick = () => {
     if (onMobileClose) onMobileClose();
@@ -83,15 +80,15 @@ export default function Sidebar({ isCollapsed, isMobileOpen, onToggle, onMobileC
                 </motion.div>
               )}
             </AnimatePresence>
-            {navItems.map(({ href, label, icon: Icon }) => (
+            {navItems.map(({ href, label, icon }, index) => (
               <NavLink
                 key={href}
                 to={href}
-                end={href === '/dashboard'}
+                end={index === 0}
                 className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
                 onClick={handleNavClick}
               >
-                <Icon />
+                <i className={`bi ${icon}`} style={{ fontSize: '18px' }}></i>
                 <AnimatePresence initial={false}>
                   {!isCollapsed && (
                     <motion.span key={`label-${href}`} {...fadeSlide}>
@@ -131,8 +128,8 @@ export default function Sidebar({ isCollapsed, isMobileOpen, onToggle, onMobileC
               <AnimatePresence initial={false}>
                 {!isCollapsed && (
                   <motion.div className="sidebar-user-info" key="user-info" {...fadeSlide}>
-                    <div className="sidebar-user-name">{user?.company_name || 'Administrator'}</div>
-                    <div className="sidebar-user-role">{user?.role || 'Administrator'}</div>
+                    <div className="sidebar-user-name">{user?.name || user?.email || 'Administrator'}</div>
+                    <div className="sidebar-user-role">{roleLabel}</div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -167,34 +164,5 @@ export default function Sidebar({ isCollapsed, isMobileOpen, onToggle, onMobileC
         )}
       </AnimatePresence>
     </>
-  );
-}
-
-function GridIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-    </svg>
-  );
-}
-
-function TagIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.2L4 3a1 1 0 0 0-1 1l.2 5.59a2 2 0 0 0 .58 1.42l9.58 9.58a2 2 0 0 0 2.83 0l4.4-4.4a2 2 0 0 0 0-2.83Z" />
-      <circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function PersonIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-3.31 3.58-6 8-6s8 2.69 8 6" />
-    </svg>
   );
 }

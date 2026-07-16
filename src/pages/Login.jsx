@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthProvider.jsx';
 import { useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../util/api';
+import { getDefaultRoute } from '../util/roles';
 import loginBg from '../assets/bgimg.png';
 import logo from '../assets/logow.png';
 import loginWaveform from '../assets/portalanim.webm';
@@ -47,7 +48,7 @@ export default function Login() {
     try {
       const data = await loginApi(email, password);
       SetLoginData(data);
-      navigate('/dashboard');
+      navigate(getDefaultRoute(data?.userData?.role));
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed. Please try again.';
       setError(msg);

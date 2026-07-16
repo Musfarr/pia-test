@@ -2,12 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import MetricsCards from '../components/MetricsCards';
-import CallVolumeChart from '../components/CallVolumeChart';
-import SentimentBar from '../components/SentimentBar';
-import WordBubble from '../components/WordBubble';
 import HorizontalBar from '../components/HorizontalBar';
 import JuryTable from '../components/JuryTable';
-import TopKeyWords from '../components/TopKeyWords';
 import { useJuries } from '../hooks/useQueries';
 import { deleteJury, assignJuryCategory } from '../util/api';
 

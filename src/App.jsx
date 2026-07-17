@@ -7,11 +7,11 @@ import Jury from './pages/Jury';
 import Nominees from './pages/Nominees';
 import NomineeProfile from './pages/NomineeProfile';
 import MyCategories from './pages/MyCategories';
-import JuryAssignment from './pages/JuryAssignment';
 import MyNominees from './pages/MyNominees';
 import MyFinalists from './pages/MyFinalists';
 import MyScores from './pages/MyScores';
 import RateNominee from './pages/RateNominee';
+import Settings from './pages/Settings';
 import AuditLogs from './pages/AuditLogs';
 import Login from './pages/Login';
 import RoleRoute from './components/ProtectedRoute';
@@ -41,12 +41,12 @@ function AppContent() {
         { path: 'nominees', element: <RoleRoute routeKey="nominees"><Nominees /></RoleRoute> },
         { path: 'nominees/:id', element: <RoleRoute routeKey="nominees"><NomineeProfile /></RoleRoute> },
         { path: 'my-categories', element: <RoleRoute routeKey="my-categories"><MyCategories /></RoleRoute> },
-        { path: 'jury-assignment', element: <RoleRoute routeKey="jury-assignment"><JuryAssignment /></RoleRoute> },
         { path: 'my-nominees', element: <RoleRoute routeKey="my-nominees"><MyNominees /></RoleRoute> },
         { path: 'my-nominees/:id', element: <RoleRoute routeKey="my-nominees"><RateNominee /></RoleRoute> },
         { path: 'my-finalists', element: <RoleRoute routeKey="my-finalists"><MyFinalists /></RoleRoute> },
         { path: 'my-finalists/:id', element: <RoleRoute routeKey="my-finalists"><RateNominee /></RoleRoute> },
         { path: 'my-scores', element: <RoleRoute routeKey="my-scores"><MyScores /></RoleRoute> },
+        { path: 'settings', element: <RoleRoute routeKey="settings"><Settings /></RoleRoute> },
         { path: 'audit-logs', element: <RoleRoute routeKey="audit-logs"><AuditLogs /></RoleRoute> },
       ],
     },

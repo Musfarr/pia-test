@@ -2,16 +2,31 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNominee, useMyScore } from '../hooks/useQueries';
+import { useNominee, useMyScore, useSettings } from '../hooks/useQueries';
+import { useAuth } from '../context/AuthProvider';
+import { normalizeRole } from '../util/roles';
 import { saveJuryScore } from '../util/api';
 import { JURY_CRITERIA, JURY_MAX_TOTAL, emptyCriteriaScores } from '../data/juryCriteria';
 import PlatformDataView from '../components/PlatformDataView';
 
+// Maps juror role to the platform stage that must be active for scoring
+const REQUIRED_STAGE = {
+  creator_jury: 'creator_rating',
+  executive_jury: 'executive_rating',
+};
+
 export default function RateNominee() {
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const role = normalizeRole(user?.role);
   const { data: nominee, isLoading: nomineeLoading } = useNominee(id);
   const { data: existingScore, isLoading: scoreLoading } = useMyScore(id);
+  const { data: settings } = useSettings();
+
+  const requiredStage = REQUIRED_STAGE[role];
+  const currentStage = settings?.currentStage || 'setup';
+  const scoringOpen = requiredStage && currentStage === requiredStage;
 
   const [scores, setScores] = useState(emptyCriteriaScores());
   const [comments, setComments] = useState('');
@@ -77,6 +92,27 @@ export default function RateNominee() {
 
   return (
     <div className="container-fluid px-3">
+
+      {/* Scoring closed banner */}
+      {!scoringOpen && requiredStage && (
+        <motion.div
+          className="alert d-flex align-items-center gap-2 mb-3"
+          style={{
+            borderRadius: '12px', fontSize: '13px',
+            background: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A', padding: '12px 16px',
+          }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <i className="bi bi-lock-fill" style={{ fontSize: '16px' }}></i>
+          <span>
+            Scoring is currently <strong>closed</strong>. The platform is in the{' '}
+            <strong>{currentStage.replace(/_/g, ' ')}</strong> stage.
+            Your role can only score during the <strong>{requiredStage.replace(/_/g, ' ')}</strong> stage.
+            You can review the nominee's data but cannot submit scores right now.
+          </span>
+        </motion.div>
+      )}
 
       {/* Header */}
       <motion.div
@@ -175,10 +211,12 @@ export default function RateNominee() {
                             max={c.max}
                             step={1}
                             value={value}
+                            disabled={!scoringOpen}
                             onChange={(e) => handleSliderChange(c.key, e.target.value)}
                             style={{
                               '--value-pct': `${pct}%`,
                               accentColor: '#5006ba',
+                              opacity: scoringOpen ? 1 : 0.6,
                             }}
                           />
                           <p className="mb-0" style={{ fontSize: '11px', color: '#9CA3AF' }}>
@@ -217,12 +255,15 @@ export default function RateNominee() {
                     type="button"
                     className="cat-form-submit mt-3"
                     onClick={handleSubmit}
-                    disabled={saving}
+                    disabled={saving || !scoringOpen}
+                    style={!scoringOpen ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                   >
                     {saving ? (
                       <><output className="spinner-border spinner-border-sm me-2"></output>Submitting…</>
-                    ) : (
+                    ) : scoringOpen ? (
                       <><i className="bi bi-check-lg me-2"></i>Submit Score</>
+                    ) : (
+                      <><i className="bi bi-lock me-2"></i>Scoring Closed</>
                     )}
                   </button>
                 </>

@@ -51,11 +51,11 @@ export const ROLE_NAV = {
     { href: '/dashboard/categories', label: 'Categories', icon: 'bi-tag' },
     { href: '/dashboard/jury', label: 'Jury', icon: 'bi-people' },
     { href: '/dashboard/nominees', label: 'Nominees', icon: 'bi-person-badge' },
+    { href: '/dashboard/settings', label: 'Settings', icon: 'bi-sliders' },
   ],
   category_admin: [
     { href: '/dashboard/my-categories', label: 'Overview', icon: 'bi-grid-1x2' },
     { href: '/dashboard/nominees', label: 'Nominees', icon: 'bi-person-badge' },
-    { href: '/dashboard/jury-assignment', label: 'Jury Assignment', icon: 'bi-people' },
   ],
   creator_jury: [
     { href: '/dashboard/my-nominees', label: 'Overview', icon: 'bi-grid-1x2' },
@@ -86,10 +86,10 @@ export const ROUTE_ROLES = {
   jury: ['super_admin'],
   nominees: ['super_admin', 'category_admin'],
   'my-categories': ['category_admin'],
-  'jury-assignment': ['category_admin'],
   'my-nominees': ['creator_jury'],
   'my-finalists': ['executive_jury'],
   'my-scores': ['creator_jury', 'executive_jury'],
+  'settings': ['super_admin'],
   'audit-logs': ['auditor', 'super_admin'],
 };
 

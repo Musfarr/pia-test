@@ -9,6 +9,7 @@ export default function Nominees() {
   const queryClient = useQueryClient();
   const { data: categories = [], isLoading: catLoading } = useCategories();
   const { data: nominees = [], isLoading } = useNominees();
+
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [submitting, setSubmitting] = useState(false);

@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { getCategories, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore } from '../util/api';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { getCategories, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage } from '../util/api';
 
 export const useCategories = () => {
   return useQuery({
@@ -50,5 +50,44 @@ export const useMyScore = (nomineeId) => {
     queryKey: ['my-score', nomineeId],
     queryFn: () => getMyScore(nomineeId),
     enabled: !!nomineeId,
+  });
+};
+
+export const useUpdateCategoryStage = () => {
+  return useMutation({
+    mutationFn: ({ id, stage }) => updateCategoryStage(id, stage),
+  });
+};
+
+// ── Global Settings / Stage ──
+export const useSettings = () => {
+  return useQuery({
+    queryKey: ['settings'],
+    queryFn: getSettings,
+  });
+};
+
+export const useUpdateGlobalStage = () => {
+  return useMutation({
+    mutationFn: (currentStage) => updateGlobalStage(currentStage),
+  });
+};
+
+export const useCategoryAdmins = () => {
+  return useQuery({
+    queryKey: ['category-admins'],
+    queryFn: getCategoryAdmins,
+  });
+};
+
+export const useCreateCategoryAdmin = () => {
+  return useMutation({
+    mutationFn: createCategoryAdmin,
+  });
+};
+
+export const useDeleteCategoryAdmin = () => {
+  return useMutation({
+    mutationFn: deleteCategoryAdmin,
   });
 };

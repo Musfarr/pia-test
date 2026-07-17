@@ -13,6 +13,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// ── Media Upload (Convex media server) ──
+const MEDIA_BASE_URL = 'https://mediaupload.convexinteractive.com';
+const UPLOAD_API_URL = `${MEDIA_BASE_URL}/api/upload`;
+
+/**
+ * Uploads a file (Blob/File) to the Convex media server.
+ * Returns { url, fileName } where url is the full publicly-accessible URL.
+ */
+export async function uploadFile(file, fileName) {
+  const formData = new FormData();
+  formData.append('file', file, fileName || file.name || 'upload.png');
+
+  const response = await axios.post(UPLOAD_API_URL, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+  if (response.status === 200 && response.data?.url) {
+    return {
+      url: MEDIA_BASE_URL + response.data.url,
+      fileName: response.data.name || fileName,
+    };
+  }
+  throw new Error('File upload failed');
+}
+
 
 
 export const login = async (email, password) => {
@@ -38,6 +63,38 @@ export const updateCategory = async (id, data) => {
 
 export const deleteCategory = async (id) => {
   const response = await api.delete(`/categories/${id}`);
+  return response.data;
+};
+
+export const updateCategoryStage = async (id, stage) => {
+  const response = await api.patch(`/categories/${id}/stage`, { stage });
+  return response.data;
+};
+
+// ── Settings / Global Stage API ──
+export const getSettings = async () => {
+  const response = await api.get('/settings');
+  return response.data;
+};
+
+export const updateGlobalStage = async (currentStage) => {
+  const response = await api.patch('/settings/stage', { currentStage });
+  return response.data;
+};
+
+// ── Category Admin users ──
+export const getCategoryAdmins = async () => {
+  const response = await api.get('/category-admins');
+  return response.data;
+};
+
+export const createCategoryAdmin = async (data) => {
+  const response = await api.post('/category-admins', data);
+  return response.data;
+};
+
+export const deleteCategoryAdmin = async (id) => {
+  const response = await api.delete(`/category-admins/${id}`);
   return response.data;
 };
 

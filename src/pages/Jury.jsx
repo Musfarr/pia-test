@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { juryTypes } from '../data/dashboardData';
 import { useJuries } from '../hooks/useQueries';
-import { createJury, deleteJury, assignJuryCategory } from '../util/api';
+import { createJury, deleteJury, assignJuryCategory, uploadFile } from '../util/api';
 import JuryTable from '../components/JuryTable';
 
 export default function Jury() {
@@ -16,14 +16,21 @@ export default function Jury() {
   const [image, setImage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setImage(reader.result);
-    reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const { url } = await uploadFile(file);
+      setImage(url);
+    } catch (err) {
+      alert('Image upload failed: ' + (err.message || 'unknown error'));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -96,8 +103,9 @@ export default function Jury() {
                   type="button"
                   className="cat-form-image-btn"
                   onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
                 >
-                  <i className="bi bi-upload"></i> Upload
+                  {uploading ? (<><output className="spinner-border spinner-border-sm me-1"></output> Uploading…</>) : (<><i className="bi bi-upload"></i> Upload</>)}
                 </button>
                 <input
                   id="jury-image"

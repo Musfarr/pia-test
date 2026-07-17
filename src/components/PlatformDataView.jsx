@@ -5,9 +5,9 @@ import { useNomineeData } from '../hooks/useQueries';
 // Read-only platform data viewer used by jury when scoring a nominee.
 // Mirrors the platform tabs from NomineeProfile but with no edit controls.
 const PLATFORMS = [
+  { key: 'instagram', label: 'Instagram', icon: 'bi-instagram', followerLabel: 'Followers' },
   { key: 'twitter', label: 'Twitter', icon: 'bi-twitter', followerLabel: 'Followers' },
   { key: 'youtube', label: 'YouTube', icon: 'bi-youtube', followerLabel: 'Subscribers' },
-  { key: 'instagram', label: 'Instagram', icon: 'bi-instagram', followerLabel: 'Followers' },
   { key: 'tiktok', label: 'TikTok', icon: 'bi-tiktok', followerLabel: 'Followers' },
   { key: 'facebook', label: 'Facebook', icon: 'bi-facebook', followerLabel: 'Followers' },
 ];
@@ -21,7 +21,7 @@ const formatCount = (n) => {
 
 export default function PlatformDataView({ nomineeId }) {
   const { data: nomineeData, isLoading } = useNomineeData(nomineeId);
-  const [activeTab, setActiveTab] = useState('twitter');
+  const [activeTab, setActiveTab] = useState('instagram');
 
   const activePlatform = PLATFORMS.find((p) => p.key === activeTab);
   const platformData = nomineeData?.[activeTab] || {};

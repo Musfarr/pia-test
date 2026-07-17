@@ -1,12 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useMyNominees } from '../hooks/useQueries';
+import { useMyNominees, useSettings } from '../hooks/useQueries';
 
 export default function MyNominees() {
   const { data: nominees = [], isLoading } = useMyNominees();
+  const { data: settings } = useSettings();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+
+  const scoringOpen = settings?.currentStage === 'creator_rating';
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -24,6 +27,26 @@ export default function MyNominees() {
 
   return (
     <div className="container-fluid px-3">
+      {/* Scoring status banner */}
+      {!scoringOpen && (
+        <motion.div
+          className="alert d-flex align-items-center gap-2 mb-3"
+          style={{
+            borderRadius: '12px', fontSize: '13px',
+            background: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A', padding: '12px 16px',
+          }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <i className="bi bi-lock-fill" style={{ fontSize: '16px' }}></i>
+          <span>
+            Creator Jury scoring is currently <strong>closed</strong>. The platform is in the{' '}
+            <strong>{settings?.currentStage?.replace(/_/g, ' ') || 'setup'}</strong> stage.
+            You can review nominees but cannot submit scores right now.
+          </span>
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
@@ -125,7 +148,7 @@ export default function MyNominees() {
                           <Link
                             to={`/dashboard/my-nominees/${item._id}`}
                             className="clt-action-btn"
-                            title="Rate nominee"
+                            title={scoringOpen ? 'Rate nominee' : 'View nominee (scoring closed)'}
                           >
                             <i className="bi bi-star"></i>
                           </Link>

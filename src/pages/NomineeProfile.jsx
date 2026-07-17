@@ -3,12 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNominee, useNomineeData } from '../hooks/useQueries';
-import { upsertPlatformData } from '../util/api';
+import { upsertPlatformData, uploadFile } from '../util/api';
 
 const PLATFORMS = [
+  { key: 'instagram', label: 'Instagram', icon: 'bi-instagram', followerLabel: 'Followers' },
   { key: 'twitter', label: 'Twitter', icon: 'bi-twitter', followerLabel: 'Followers' },
   { key: 'youtube', label: 'YouTube', icon: 'bi-youtube', followerLabel: 'Subscribers' },
-  { key: 'instagram', label: 'Instagram', icon: 'bi-instagram', followerLabel: 'Followers' },
   { key: 'tiktok', label: 'TikTok', icon: 'bi-tiktok', followerLabel: 'Followers' },
   { key: 'facebook', label: 'Facebook', icon: 'bi-facebook', followerLabel: 'Followers' },
 ];
@@ -24,6 +24,7 @@ export default function NomineeProfile() {
   const [image, setImage] = useState('');
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
   // Sync local form state when data loads or tab changes
@@ -35,12 +36,18 @@ export default function NomineeProfile() {
     setSavedMsg('');
   }, [nomineeData, activeTab]);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setImage(reader.result);
-    reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const { url } = await uploadFile(file);
+      setImage(url);
+    } catch (err) {
+      alert('Image upload failed: ' + (err.message || 'unknown error'));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -150,14 +157,16 @@ export default function NomineeProfile() {
                         type="button"
                         className="btn btn-sm btn-outline-secondary"
                         onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
                       >
-                        <i className="bi bi-upload"></i> Upload
+                        {uploading ? (<><output className="spinner-border spinner-border-sm me-1"></output> Uploading…</>) : (<><i className="bi bi-upload"></i> Upload</>)}
                       </button>
                       {image && (
                         <button
                           type="button"
                           className="btn btn-sm btn-outline-danger"
                           onClick={() => setImage('')}
+                          disabled={uploading}
                         >
                           <i className="bi bi-x-lg"></i> Remove
                         </button>

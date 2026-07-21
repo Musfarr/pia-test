@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useMyNominees, useSettings } from '../hooks/useQueries';
+import KpiCards from '../components/kpis/KpiCards';
 
 // Executive Jury view — same data source as MyNominees (getMyNominees)
 // but framed as "finalists" shortlisted for executive scoring.
@@ -45,6 +46,11 @@ export default function MyFinalists() {
 
   return (
     <div className="container-fluid px-3">
+      {/* KPI Row */}
+      <div className="mb-3">
+        <KpiCards />
+      </div>
+
       {/* Scoring status banner */}
       {!scoringOpen && (
         <motion.div

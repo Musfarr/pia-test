@@ -1,44 +1,177 @@
 import React, { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useShortlists, useSettings } from '../hooks/useQueries';
 
 // Stage filter chips shown above the table
 const STAGE_FILTERS = [
-  { key: 'creator', label: 'Creator Jury Shortlist (Top 10)', color: '#5006ba' },
-  { key: 'executive', label: 'Executive Jury Shortlist (Top 5)', color: '#D97706' },
-  { key: 'public', label: 'Public Voting Finalists', color: '#059669' },
+  { key: 'creator', label: 'Creator Jury · Top 10', color: '#5006ba', icon: 'bi-pencil-square' },
+  { key: 'executive', label: 'Executive Jury · Top 5', color: '#D97706', icon: 'bi-award' },
+  { key: 'public', label: 'Public Voting Finalists', color: '#059669', icon: 'bi-people' },
 ];
+
+// Theme signature gradient — used across the app for avatars, buttons, active tabs.
+// Defined once here so cards stay on-theme.
+const THEME_GRADIENT = 'radial-gradient(circle at 60% 40%, #6510b4, #29055e)';
+
+// ── Neumorphic nominee card ──
+function NomineeCard({ row, index }) {
+  const nominee = row.nomineeId;
+  const nomineeName = typeof nominee === 'object' ? nominee?.name : 'Unknown';
+  const initial = nomineeName.charAt(0).toUpperCase();
+  const isPodium = row.rank <= 3;
+
+  // Podium accent uses the theme primary purple with varying opacity,
+  // so top-3 cards stand out without introducing off-theme colors.
+  const podiumRing = isPodium ? '0 0 0 1.5px rgba(80, 6, 186, 0.35)' : '';
+
+  return (
+    <motion.div
+      className="col-12 col-sm-6 col-lg-4 col-xl-3"
+      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.45, delay: index * 0.05, ease: [0.23, 1, 0.32, 1] }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+    >
+      <div
+        className="sl-card"
+        style={{
+          background: '#F4F4F6',
+          borderRadius: '18px',
+          padding: '18px',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: isPodium
+            ? `8px 8px 16px rgba(0,0,0,0.10), -8px -8px 16px rgba(255,255,255,0.9), ${podiumRing}`
+            : '8px 8px 16px rgba(0,0,0,0.08), -8px -8px 16px rgba(255,255,255,0.85)',
+        }}
+      >
+        {/* Rank ribbon (top-right) — theme primary */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0, right: 0,
+            background: THEME_GRADIENT,
+            color: '#fff',
+            fontSize: '11px',
+            fontWeight: 700,
+            padding: '4px 12px',
+            borderBottomLeftRadius: '10px',
+            boxShadow: '2px 2px 6px rgba(80, 6, 186, 0.25)',
+          }}
+        >
+          #{row.rank}
+        </div>
+
+        {/* Avatar + name */}
+        <div className="d-flex align-items-center gap-3 mb-3" style={{ marginTop: '8px' }}>
+          <div
+            style={{
+              width: '52px', height: '52px', borderRadius: '14px',
+              background: THEME_GRADIENT,
+              color: '#fff', fontSize: '22px', fontWeight: 700,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: '4px 4px 10px rgba(101, 16, 180, 0.25), -2px -2px 6px rgba(255,255,255,0.3)',
+            }}
+          >
+            {initial}
+          </div>
+          <div className="min-w-0 flex-grow-1">
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#1F2937', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {nomineeName}
+            </div>
+            <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>
+              <i className="bi bi-tag me-1"></i>
+              {typeof nominee === 'object' ? nominee?.season : '—'}
+            </div>
+          </div>
+        </div>
+
+        {/* Score stats — neumorphic inset pills */}
+        <div className="d-flex gap-2 mb-2">
+          <div className="sl-stat" style={{ flex: 1, background: '#E8E8EC', borderRadius: '10px', padding: '8px 10px', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.08), inset -3px -3px 6px rgba(255,255,255,0.7)' }}>
+            <div style={{ fontSize: '9px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Creator</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: row.creatorScore > 0 ? '#5006ba' : '#D1D5DB' }}>
+              {row.creatorScore > 0 ? row.creatorScore.toFixed(1) : '—'}
+              {row.creatorScore > 0 && <span style={{ fontSize: '9px', color: '#9CA3AF', fontWeight: 400 }}>/30</span>}
+            </div>
+          </div>
+          <div className="sl-stat" style={{ flex: 1, background: '#E8E8EC', borderRadius: '10px', padding: '8px 10px', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.08), inset -3px -3px 6px rgba(255,255,255,0.7)' }}>
+            <div style={{ fontSize: '9px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Executive</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: row.executiveScore > 0 ? '#D97706' : '#D1D5DB' }}>
+              {row.executiveScore > 0 ? row.executiveScore.toFixed(1) : '—'}
+              {row.executiveScore > 0 && <span style={{ fontSize: '9px', color: '#9CA3AF', fontWeight: 400 }}>/40</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Combined score — theme gradient footer */}
+        <div
+          style={{
+            background: THEME_GRADIENT,
+            borderRadius: '12px',
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '4px 4px 10px rgba(101, 16, 180, 0.25), -2px -2px 6px rgba(255,255,255,0.4)',
+          }}
+        >
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <i className="bi bi-bar-chart-fill me-1"></i>Combined
+          </span>
+          <span style={{ fontSize: '18px', fontWeight: 800, color: '#fff' }}>
+            {row.score.toFixed(1)}
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>/70</span>
+          </span>
+        </div>
+
+        {/* Jury vote counts */}
+        <div className="d-flex align-items-center justify-content-between mt-2" style={{ fontSize: '10px', color: '#9CA3AF' }}>
+          <span>
+            <i className="bi bi-people me-1"></i>
+            {row.creatorJuryCount > 0 && <span className="me-2">C: {row.creatorJuryCount}</span>}
+            {row.executiveJuryCount > 0 && <span>E: {row.executiveJuryCount}</span>}
+            {row.creatorJuryCount === 0 && row.executiveJuryCount === 0 && 'No votes yet'}
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function Shortlist() {
   const { data: settings } = useSettings();
   const [stageFilter, setStageFilter] = useState('creator');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [activeCategory, setActiveCategory] = useState(null); // null = "All"
   const { data: shortlists = [], isLoading } = useShortlists(stageFilter);
 
   const currentStage = settings?.currentStage || 'setup';
 
-  // Group rows by category for display
+  // Group rows by category
   const grouped = useMemo(() => {
     const map = new Map();
     for (const row of shortlists) {
       const catId = row.categoryId?._id || String(row.categoryId);
       const catName = row.categoryId?.name || 'Unknown Category';
-      if (!map.has(catId)) map.set(catId, { name: catName, season: row.categoryId?.season, rows: [] });
+      const catSeason = row.categoryId?.season;
+      if (!map.has(catId)) map.set(catId, { id: catId, name: catName, season: catSeason, rows: [] });
       map.get(catId).rows.push(row);
     }
-    // Sort each group by rank
     for (const [, group] of map) {
       group.rows.sort((a, b) => a.rank - b.rank);
     }
-    return Array.from(map.entries());
+    return Array.from(map.entries()).map(([id, g]) => [id, g]);
   }, [shortlists]);
 
-  const filteredGroups = useMemo(() => {
-    if (!categoryFilter) return grouped;
-    return grouped.filter(([catId]) => catId === categoryFilter);
-  }, [grouped, categoryFilter]);
+  // Currently visible cards (filtered by active category tab)
+  const visibleRows = useMemo(() => {
+    if (!activeCategory) return shortlists.slice().sort((a, b) => a.rank - b.rank);
+    const group = grouped.find(([id]) => id === activeCategory);
+    return group ? group[1].rows : [];
+  }, [shortlists, activeCategory, grouped]);
 
-  // Helper: is the selected stage shortlist available yet?
+  // Is the selected stage shortlist available yet?
   const stageAvailable = (() => {
     const order = ['setup', 'creator_rating', 'executive_rating', 'public_voting', 'completed'];
     const currentIdx = order.indexOf(currentStage);
@@ -47,6 +180,8 @@ export default function Shortlist() {
     if (stageFilter === 'public') return currentIdx > order.indexOf('public_voting');
     return false;
   })();
+
+  const activeStageDef = STAGE_FILTERS.find((s) => s.key === stageFilter);
 
   return (
     <div className="container-fluid px-3">
@@ -85,11 +220,11 @@ export default function Shortlist() {
             <button
               key={s.key}
               type="button"
-              onClick={() => { setStageFilter(s.key); setCategoryFilter(''); }}
+              onClick={() => { setStageFilter(s.key); setActiveCategory(null); }}
               className="btn btn-sm"
               style={{
                 borderRadius: '20px',
-                padding: '6px 14px',
+                padding: '7px 16px',
                 fontSize: '12px',
                 fontWeight: 600,
                 border: active ? `1px solid ${s.color}` : '1px solid #E5E7EB',
@@ -97,27 +232,11 @@ export default function Shortlist() {
                 color: active ? s.color : '#6B7280',
               }}
             >
-              {s.label}
+              <i className={`bi ${s.icon} me-1`}></i>{s.label}
             </button>
           );
         })}
       </motion.div>
-
-      {/* Category filter */}
-      {grouped.length > 0 && (
-        <div className="d-flex align-items-center gap-2 flex-wrap mb-3">
-          <select
-            className="date-filter-select"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
-            <option value="">Category: All</option>
-            {grouped.map(([catId, group]) => (
-              <option key={catId} value={catId}>{group.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
 
       {/* Content */}
       {isLoading ? (
@@ -135,12 +254,12 @@ export default function Shortlist() {
           <div className="card-body text-center py-5">
             <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#D1D5DB', display: 'block', marginBottom: '8px' }}></i>
             <p className="mb-0" style={{ color: '#9CA3AF', fontSize: '14px' }}>
-              The <strong>{STAGE_FILTERS.find((s) => s.key === stageFilter)?.label}</strong> has not been computed yet.
+              The <strong>{activeStageDef?.label}</strong> has not been computed yet.
               <br />It will be generated automatically when the platform advances to the next stage.
             </p>
           </div>
         </motion.div>
-      ) : filteredGroups.length === 0 ? (
+      ) : !grouped.length ? (
         <motion.div
           className="card clt-card"
           initial={{ opacity: 0, y: 18 }}
@@ -153,101 +272,91 @@ export default function Shortlist() {
           </div>
         </motion.div>
       ) : (
-        <div className="d-flex flex-column gap-4">
-          {filteredGroups.map(([catId, group]) => (
-            <motion.div
-              key={catId}
-              className="card clt-card"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+        <>
+          {/* Category tabs */}
+          <motion.div
+            className="d-flex align-items-center gap-2 flex-wrap mb-4"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <button
+              type="button"
+              onClick={() => setActiveCategory(null)}
+              className="btn btn-sm"
+              style={{
+                borderRadius: '8px',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: 600,
+                border: activeCategory === null ? '1px solid #5006ba' : '1px solid #E5E7EB',
+                background: activeCategory === null ? '#5006ba10' : '#fff',
+                color: activeCategory === null ? '#5006ba' : '#6B7280',
+              }}
             >
-              <div className="clt-header">
-                <div>
-                  <h6 className="clt-title">{group.name}</h6>
-                  <p className="clt-subtitle">
-                    {group.season && <span className="clt-badge me-2" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>{group.season}</span>}
-                    {group.rows.length} shortlisted
-                  </p>
-                </div>
-              </div>
-              <div className="card-body p-0">
-                <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0">
-                    <thead>
-                      <tr className="clt-thead-row">
-                        <th className="clt-th ps-4" style={{ width: '60px' }}>Rank</th>
-                        <th className="clt-th">Nominee</th>
-                        <th className="clt-th text-center">Creator Score</th>
-                        <th className="clt-th text-center">Executive Score</th>
-                        <th className="clt-th text-center">Combined</th>
-                        <th className="clt-th text-center pe-4">Jury Votes</th>
-                      </tr>
-                    </thead>
-                    <tbody className="border-top-0">
-                      {group.rows.map((row) => {
-                        const nominee = row.nomineeId;
-                        const nomineeName = typeof nominee === 'object' ? nominee?.name : 'Unknown';
-                        return (
-                          <tr key={row._id} className="clt-row">
-                            <td className="ps-4 py-3">
-                              <span
-                                className="d-inline-flex align-items-center justify-content-center"
-                                style={{
-                                  width: '28px', height: '28px', borderRadius: '50%',
-                                  background: row.rank <= 3 ? '#5006ba15' : '#F3F4F6',
-                                  color: row.rank <= 3 ? '#5006ba' : '#6B7280',
-                                  fontSize: '13px', fontWeight: 700,
-                                }}
-                              >
-                                {row.rank}
-                              </span>
-                            </td>
-                            <td className="py-3">
-                              <div className="d-flex align-items-center gap-3">
-                                <div className="clt-avatar">{nomineeName.charAt(0).toUpperCase()}</div>
-                                <div className="clt-name">{nomineeName}</div>
-                              </div>
-                            </td>
-                            <td className="text-center clt-cell">
-                              {row.creatorScore > 0 ? (
-                                <span style={{ fontWeight: 600, color: '#5006ba' }}>
-                                  {row.creatorScore.toFixed(1)}
-                                  <span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 400 }}>/30</span>
-                                </span>
-                              ) : '—'}
-                            </td>
-                            <td className="text-center clt-cell">
-                              {row.executiveScore > 0 ? (
-                                <span style={{ fontWeight: 600, color: '#D97706' }}>
-                                  {row.executiveScore.toFixed(1)}
-                                  <span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 400 }}>/40</span>
-                                </span>
-                              ) : '—'}
-                            </td>
-                            <td className="text-center">
-                              <span style={{ fontWeight: 700, color: '#059669' }}>
-                                {row.score.toFixed(1)}
-                                <span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 400 }}>/70</span>
-                              </span>
-                            </td>
-                            <td className="pe-4 text-center clt-cell">
-                              <span style={{ fontSize: '12px', color: '#6B7280' }}>
-                                {row.creatorJuryCount > 0 && <span className="me-2">C: {row.creatorJuryCount}</span>}
-                                {row.executiveJuryCount > 0 && <span>E: {row.executiveJuryCount}</span>}
-                                {row.creatorJuryCount === 0 && row.executiveJuryCount === 0 && '—'}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <i className="bi bi-grid me-1"></i>All ({shortlists.length})
+            </button>
+            {grouped.map(([catId, group]) => {
+              const active = activeCategory === catId;
+              return (
+                <button
+                  key={catId}
+                  type="button"
+                  onClick={() => setActiveCategory(catId)}
+                  className="btn btn-sm"
+                  style={{
+                    borderRadius: '8px',
+                    padding: '6px 14px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    border: active ? '1px solid #5006ba' : '1px solid #E5E7EB',
+                    background: active ? '#5006ba10' : '#fff',
+                    color: active ? '#5006ba' : '#6B7280',
+                  }}
+                >
+                  {group.name} <span style={{ fontSize: '10px', color: '#9CA3AF', fontWeight: 400 }}>({group.rows.length})</span>
+                </button>
+              );
+            })}
+          </motion.div>
+
+          {/* Active category header (when one is selected) */}
+          {activeCategory && (
+            <motion.div
+              className="d-flex align-items-center gap-2 mb-3"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <i className="bi bi-folder2-open" style={{ color: '#5006ba', fontSize: '16px' }}></i>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>
+                {grouped.find(([id]) => id === activeCategory)?.[1].name}
+              </span>
+              <span className="clt-badge" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>
+                {grouped.find(([id]) => id === activeCategory)?.[1].season}
+              </span>
+              <span style={{ fontSize: '12px', color: '#9CA3AF' }}>
+                · {visibleRows.length} shortlisted
+              </span>
             </motion.div>
-          ))}
-        </div>
+          )}
+
+          {/* Cards grid */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeCategory || 'all'}
+              className="row g-3 mb-5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              {visibleRows.map((row, i) => (
+                <NomineeCard key={row._id || i} row={row} index={i} />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </>
       )}
     </div>
   );

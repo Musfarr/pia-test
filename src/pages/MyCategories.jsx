@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useCategories, useSettings } from '../hooks/useQueries';
+import KpiCards from '../components/kpis/KpiCards';
+import PlatformCompletenessBar from '../components/kpis/PlatformCompletenessBar';
 
 const STAGE_LABELS = {
   setup: { label: 'Setup', color: '#6B7280', icon: 'bi-gear' },
@@ -68,6 +70,16 @@ export default function MyCategories() {
 
   return (
     <div className="container-fluid px-3">
+
+      {/* KPI Row */}
+      <div className="mb-3">
+        <KpiCards />
+      </div>
+
+      {/* Platform data completeness for my nominees */}
+      <div className="mb-3">
+        <PlatformCompletenessBar />
+      </div>
 
       {/* Global stage banner — read-only for category admin */}
       <motion.div

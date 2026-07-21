@@ -186,5 +186,11 @@ export const getShortlists = async (stage) => {
   return response.data;
 };
 
+// ── Dashboard KPIs ──
+export const getDashboardStats = async () => {
+  const response = await api.get('/dashboard/stats');
+  return response.data;
+};
+
 export { API_BASE_URL, AGENT_BASE_URL };
 export default api;

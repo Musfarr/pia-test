@@ -242,14 +242,17 @@ export default function Settings() {
 
       {/* Stage descriptions table */}
       <motion.div
-        className="card cat-form-card"
+        className="card clt-card"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.15, ease: [0.23, 1, 0.32, 1] }}
       >
-        <h6 className="cat-form-title mb-3">
-          <i className="bi bi-info-circle me-2"></i>Stage Reference
-        </h6>
+        <div className="clt-header">
+          <h6 className="clt-title">
+            <i className="bi bi-info-circle me-2"></i>Stage Reference
+          </h6>
+        </div>
+        <div className="card-body p-0">
         <div  className="table-responsive">
           <table  className="table table-hover align-middle mb-0" >
             <thead>
@@ -288,6 +291,7 @@ export default function Settings() {
               })}
             </tbody>
           </table>
+        </div>
         </div>
       </motion.div>
 

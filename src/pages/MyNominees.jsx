@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useMyNominees, useSettings } from '../hooks/useQueries';
+import KpiCards from '../components/kpis/KpiCards';
 
 export default function MyNominees() {
   const { data: nominees = [], isLoading } = useMyNominees();
@@ -43,6 +44,11 @@ export default function MyNominees() {
 
   return (
     <div className="container-fluid px-3">
+      {/* KPI Row */}
+      <div className="mb-3">
+        <KpiCards />
+      </div>
+
       {/* Scoring status banner */}
       {!scoringOpen && (
         <motion.div

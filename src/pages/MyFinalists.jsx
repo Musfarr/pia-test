@@ -10,8 +10,22 @@ export default function MyFinalists() {
   const { data: settings } = useSettings();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   const scoringOpen = settings?.currentStage === 'executive_rating';
+
+  // Unique categories derived from the finalists list (for the filter dropdown)
+  const categories = useMemo(() => {
+    const map = new Map();
+    for (const n of nominees) {
+      const cat = n.categoryId;
+      if (cat) {
+        const id = cat._id || cat;
+        if (!map.has(id)) map.set(id, { id, name: cat.name || '—' });
+      }
+    }
+    return Array.from(map.values());
+  }, [nominees]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -21,9 +35,11 @@ export default function MyFinalists() {
         !statusFilter ||
         (statusFilter === 'submitted' && n.myScore) ||
         (statusFilter === 'pending' && !n.myScore);
-      return matchesSearch && matchesStatus;
+      const catId = n.categoryId?._id || n.categoryId;
+      const matchesCategory = !categoryFilter || catId === categoryFilter;
+      return matchesSearch && matchesStatus && matchesCategory;
     });
-  }, [nominees, search, statusFilter]);
+  }, [nominees, search, statusFilter, categoryFilter]);
 
   const submittedCount = nominees.filter((n) => n.myScore).length;
 
@@ -75,6 +91,16 @@ export default function MyFinalists() {
               </div>
               <select
                 className="date-filter-select"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                <option value="">Category: All</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+              <select
+                className="date-filter-select"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -111,7 +137,9 @@ export default function MyFinalists() {
                       <td colSpan="6" className="text-center py-5">
                         <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#D1D5DB', display: 'block', marginBottom: '8px' }}></i>
                         <p className="mb-0" style={{ color: '#9CA3AF', fontSize: '14px' }}>
-                          {nominees.length ? 'No finalists match your filters' : 'No finalists assigned to you yet'}
+                          {nominees.length
+                            ? 'No finalists match your filters'
+                            : 'No finalists available yet. The Creator Jury shortlist (Top 10 per category) will appear here once the creator rating stage is completed.'}
                         </p>
                       </td>
                     </tr>
@@ -132,7 +160,9 @@ export default function MyFinalists() {
                         </td>
                         <td className="text-center clt-cell">
                           {item.myScore ? (
-                            <span style={{ fontWeight: 700, color: '#5006ba' }}>{item.myScore.totalScore}</span>
+                            <span style={{ fontWeight: 700, color: '#5006ba' }}>
+                              {Math.round(item.myScore.avgScore ?? 0)}<span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 400 }}>/100</span>
+                            </span>
                           ) : '—'}
                         </td>
                         <td className="text-center">

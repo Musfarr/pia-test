@@ -12,6 +12,7 @@ import MyFinalists from './pages/MyFinalists';
 import MyScores from './pages/MyScores';
 import RateNominee from './pages/RateNominee';
 import Settings from './pages/Settings';
+import Shortlist from './pages/Shortlist';
 import AuditLogs from './pages/AuditLogs';
 import Login from './pages/Login';
 import RoleRoute from './components/ProtectedRoute';
@@ -47,6 +48,7 @@ function AppContent() {
         { path: 'my-finalists/:id', element: <RoleRoute routeKey="my-finalists"><RateNominee /></RoleRoute> },
         { path: 'my-scores', element: <RoleRoute routeKey="my-scores"><MyScores /></RoleRoute> },
         { path: 'settings', element: <RoleRoute routeKey="settings"><Settings /></RoleRoute> },
+        { path: 'shortlist', element: <RoleRoute routeKey="shortlist"><Shortlist /></RoleRoute> },
         { path: 'audit-logs', element: <RoleRoute routeKey="audit-logs"><AuditLogs /></RoleRoute> },
       ],
     },

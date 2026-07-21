@@ -177,5 +177,12 @@ export const saveJuryScore = async (data) => {
   return response.data;
 };
 
+// ── Shortlist API ──
+export const getShortlists = async (stage) => {
+  const params = stage ? { stage } : {};
+  const response = await api.get('/shortlists', { params });
+  return response.data;
+};
+
 export { API_BASE_URL, AGENT_BASE_URL };
 export default api;

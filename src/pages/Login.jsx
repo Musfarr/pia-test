@@ -68,8 +68,8 @@ export default function Login() {
 
         <div className="login-left-content">
           <h1 className="login-title">
-            CELEBRATING THE<br />
-             <span className="login-title-accent">PEOPLE</span>
+            SHAPING DIGITAL<br />
+             <span className="login-title-accent">CULTURE</span>
           </h1>
           <p className="login-tagline">
             Pakistan Influencer Awards recognizes creators, storytellers, and

@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getCategories, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage } from '../util/api';
+import { getCategories, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage, getShortlists } from '../util/api';
 
 export const useCategories = () => {
   return useQuery({
@@ -89,5 +89,13 @@ export const useCreateCategoryAdmin = () => {
 export const useDeleteCategoryAdmin = () => {
   return useMutation({
     mutationFn: deleteCategoryAdmin,
+  });
+};
+
+// ── Shortlists ──
+export const useShortlists = (stage) => {
+  return useQuery({
+    queryKey: ['shortlists', stage || 'all'],
+    queryFn: () => getShortlists(stage),
   });
 };

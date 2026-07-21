@@ -51,6 +51,7 @@ export const ROLE_NAV = {
     { href: '/dashboard/categories', label: 'Categories', icon: 'bi-tag' },
     { href: '/dashboard/jury', label: 'Jury', icon: 'bi-people' },
     { href: '/dashboard/nominees', label: 'Nominees', icon: 'bi-person-badge' },
+    { href: '/dashboard/shortlist', label: 'Shortlist', icon: 'bi-trophy' },
     { href: '/dashboard/settings', label: 'Settings', icon: 'bi-sliders' },
   ],
   category_admin: [
@@ -90,6 +91,7 @@ export const ROUTE_ROLES = {
   'my-finalists': ['executive_jury'],
   'my-scores': ['creator_jury', 'executive_jury'],
   'settings': ['super_admin'],
+  'shortlist': ['super_admin'],
   'audit-logs': ['auditor', 'super_admin'],
 };
 

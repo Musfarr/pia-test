@@ -6,7 +6,7 @@ import { useNominee, useMyScore, useSettings } from '../hooks/useQueries';
 import { useAuth } from '../context/AuthProvider';
 import { normalizeRole } from '../util/roles';
 import { saveJuryScore } from '../util/api';
-import { JURY_CRITERIA, JURY_MAX_TOTAL, emptyCriteriaScores } from '../data/juryCriteria';
+import { getCriteriaForRole, ROLE_TO_STAGE, getMaxPointsForRole, emptyCriteriaScores } from '../data/juryCriteria';
 import PlatformDataView from '../components/PlatformDataView';
 
 // Maps juror role to the platform stage that must be active for scoring
@@ -28,7 +28,12 @@ export default function RateNominee() {
   const currentStage = settings?.currentStage || 'setup';
   const scoringOpen = requiredStage && currentStage === requiredStage;
 
-  const [scores, setScores] = useState(emptyCriteriaScores());
+  // Role-specific criteria + scoring stage
+  const scoringStage = ROLE_TO_STAGE[role];
+  const criteria = getCriteriaForRole(role);
+  const stageMaxPoints = getMaxPointsForRole(role);
+
+  const [scores, setScores] = useState(() => emptyCriteriaScores(scoringStage));
   const [comments, setComments] = useState('');
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
@@ -37,20 +42,32 @@ export default function RateNominee() {
   // Hydrate form when existing score loads
   useEffect(() => {
     if (!scoreLoading && existingScore) {
-      const next = emptyCriteriaScores();
+      const next = emptyCriteriaScores(scoringStage);
       if (existingScore.criteriaScores) {
-        for (const c of JURY_CRITERIA) {
+        for (const c of criteria) {
           next[c.key] = Number(existingScore.criteriaScores[c.key]) || 0;
         }
       }
       setScores(next);
       setComments(existingScore.comments || '');
     }
-  }, [scoreLoading, existingScore]);
+  }, [scoreLoading, existingScore, scoringStage, criteria]);
 
-  const totalScore = useMemo(
-    () => JURY_CRITERIA.reduce((sum, c) => sum + (Number(scores[c.key]) || 0), 0),
-    [scores]
+  // Avg of raw scores (0-100) — shown to the juror as their overall rating
+  const avgScore = useMemo(
+    () => criteria.length
+      ? criteria.reduce((sum, c) => sum + (Number(scores[c.key]) || 0), 0) / criteria.length
+      : 0,
+    [scores, criteria]
+  );
+
+  // Weighted total (the juror's contribution toward the final 100-point total)
+  const weightedTotal = useMemo(
+    () => criteria.reduce(
+      (sum, c) => sum + ((Number(scores[c.key]) || 0) / 100) * c.maxPoints,
+      0
+    ),
+    [scores, criteria]
   );
 
   const handleSliderChange = (key, value) => {
@@ -88,7 +105,7 @@ export default function RateNominee() {
     );
   }
 
-  const totalColor = totalScore >= 80 ? '#059669' : totalScore >= 60 ? '#5006ba' : totalScore >= 40 ? '#D97706' : '#DC2626';
+  const avgColor = avgScore >= 80 ? '#059669' : avgScore >= 60 ? '#5006ba' : avgScore >= 40 ? '#D97706' : '#DC2626';
 
   return (
     <div className="container-fluid px-3">
@@ -172,10 +189,13 @@ export default function RateNominee() {
                 </h6>
                 <div className="text-end">
                   <div style={{ fontSize: '11px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Total
+                    Avg Score
                   </div>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: totalColor, lineHeight: 1 }}>
-                    {totalScore}<span style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: 400 }}>/{JURY_MAX_TOTAL}</span>
+                  <div style={{ fontSize: '24px', fontWeight: 700, color: avgColor, lineHeight: 1 }}>
+                    {Math.round(avgScore)}<span style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: 400 }}>/100</span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>
+                    Weighted: {weightedTotal.toFixed(1)}/{stageMaxPoints}
                   </div>
                 </div>
               </div>
@@ -186,19 +206,19 @@ export default function RateNominee() {
                 </div>
               ) : (
                 <>
-                  {/* Sliders */}
+                  {/* Sliders — each criterion scored 0-100, step 10 */}
                   <div className="d-flex flex-column gap-3">
-                    {JURY_CRITERIA.map((c) => {
+                    {criteria.map((c) => {
                       const value = Number(scores[c.key]) || 0;
-                      const pct = (value / c.max) * 100;
+                      const pct = value; // 0-100 scale
                       return (
                         <div key={c.key}>
                           <div className="d-flex justify-content-between align-items-baseline mb-1">
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>
+                            <span style={{ fontSize: '16px', fontWeight: 600, color: '#111827' }}>
                               {c.label}
-                              <span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 400, marginLeft: '4px' }}>
-                                / {c.max}
-                              </span>
+                              {/* <span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 400, marginLeft: '4px' }}>
+                                (max {c.maxPoints} pts)
+                              </span> */}
                             </span>
                             <span style={{ fontSize: '13px', fontWeight: 700, color: '#5006ba' }}>
                               {value}
@@ -208,8 +228,8 @@ export default function RateNominee() {
                             type="range"
                             className="form-range"
                             min={0}
-                            max={c.max}
-                            step={1}
+                            max={100}
+                            step={10}
                             value={value}
                             disabled={!scoringOpen}
                             onChange={(e) => handleSliderChange(c.key, e.target.value)}
@@ -219,7 +239,7 @@ export default function RateNominee() {
                               opacity: scoringOpen ? 1 : 0.6,
                             }}
                           />
-                          <p className="mb-0" style={{ fontSize: '11px', color: '#9CA3AF' }}>
+                          <p className="mb-0" style={{ fontSize: '14px', color: '#9CA3AF' }}>
                             {c.description}
                           </p>
                         </div>

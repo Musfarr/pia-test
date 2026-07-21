@@ -6,7 +6,7 @@ function StatusRow({ icon, title, rows, unit }) {
 
   return (
     <div className="shortlist-status-card">
-      <div className="kpi-icon-wrap kpi-icon-wrap--dark" style={{ marginBottom: 0 }}>
+      <div className="kpi-icon-wrap kpi-icon-wrap--brand" style={{ marginBottom: 0 }}>
         <i className={`bi ${icon}`} />
       </div>
       <div className="flex-fill">

@@ -30,7 +30,7 @@ export default function ScoreDistributionChart() {
       data: values,
       barWidth: '46%',
       itemStyle: {
-        borderRadius: [8, 8, 0, 0],
+        borderRadius: [4, 4, 0, 0],
         color: {
           type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
           colorStops: [{ offset: 0, color: '#6510b4' }, { offset: 1, color: '#29055e' }],

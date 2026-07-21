@@ -1569,3 +1569,28 @@ body {
     justify-content: space-between;
   }
 }
+
+/* ── Shortlist nominee cards (image-dominant with hover stats) ── */
+.sl-card--image-dominant {
+  transition: box-shadow 0.3s ease;
+}
+
+.sl-card--image-dominant:hover {
+  box-shadow: 10px 10px 20px rgba(0,0,0,0.12), -10px -10px 20px rgba(255,255,255,0.9), 0 0 0 1.5px rgba(80, 6, 186, 0.3);
+}
+
+.sl-hover-stats {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px;
+  background: linear-gradient(to top, rgba(41, 5, 94, 0.92), rgba(101, 16, 180, 0.85));
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  pointer-events: none;
+}
+
+.sl-card--image-dominant:hover .sl-hover-stats {
+  transform: translateY(0);
+}

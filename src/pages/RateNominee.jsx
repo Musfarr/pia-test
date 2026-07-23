@@ -140,11 +140,18 @@ export default function RateNominee() {
       >
         <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div className="d-flex align-items-center gap-3">
-            <Link to=".." relative="path" className="clt-action-btn" title="Back">
+            {/* <Link to=".." relative="path" className="clt-action-btn" title="Back">
               <i className="bi bi-arrow-left"></i>
-            </Link>
+            </Link> */}
+            <div className="clt-avatar" style={{ width: '126px', height: '126px', borderRadius: '12px', fontSize: '20px' }}>
+              {nominee?.profileImage ? (
+                <img src={nominee.profileImage} alt={nominee?.name || 'Nominee'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                nominee?.name?.charAt(0).toUpperCase() || '?'
+              )}
+            </div>
             <div>
-              <h6 className="cat-form-title mb-1">Rate: {nominee?.name || 'Nominee'}</h6>
+              <h6 className="cat-form-title mb-1">{nominee?.name || 'Nominee'}</h6>
               <p className="cat-form-subtitle mb-0">
                 {nominee?.categoryId?.name && (
                   <span className="clt-badge me-2" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>
@@ -177,24 +184,24 @@ export default function RateNominee() {
         {/* Right: scoring panel */}
         <div className="col-12 col-lg-5">
           <motion.div
-            className="card clt-card"
+            className="rubric-card"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
           >
-            <div className="card-body p-4">
-              <div className="d-flex align-items-center justify-content-between mb-3">
-                <h6 className="cat-form-title mb-0">
-                  <i className="bi bi-star me-2"></i>Scoring Rubric
+            <div className="p-4">
+              <div className="rubric-header d-flex align-items-center justify-content-between mb-4">
+                <h6 className="cat-form-title mb-0" style={{ fontSize: '18px' }}>
+                  <i className="bi bi-star me-2" style={{ color: '#6510b4' }}></i>Scoring Rubric
                 </h6>
-                <div className="text-end">
-                  <div style={{ fontSize: '11px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div className="rubric-score-pill text-end">
+                  <div style={{ fontSize: '10px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Avg Score
                   </div>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: avgColor, lineHeight: 1 }}>
-                    {Math.round(avgScore)}<span style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: 400 }}>/100</span>
+                  <div style={{ fontSize: '22px', fontWeight: 700, color: avgColor, lineHeight: 1 }}>
+                    {Math.round(avgScore)}<span style={{ fontSize: '13px', color: '#9CA3AF', fontWeight: 400 }}>/100</span>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>
+                  <div style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '1px' }}>
                     Weighted: {weightedTotal.toFixed(1)}/{stageMaxPoints}
                   </div>
                 </div>
@@ -207,39 +214,30 @@ export default function RateNominee() {
               ) : (
                 <>
                   {/* Sliders — each criterion scored 0-100, step 10 */}
-                  <div className="d-flex flex-column gap-3">
+                  <div className="d-flex flex-column gap-4">
                     {criteria.map((c) => {
                       const value = Number(scores[c.key]) || 0;
-                      const pct = value; // 0-100 scale
                       return (
                         <div key={c.key}>
-                          <div className="d-flex justify-content-between align-items-baseline mb-1">
-                            <span style={{ fontSize: '16px', fontWeight: 600, color: '#111827' }}>
+                          <div className="d-flex justify-content-between align-items-baseline mb-2">
+                            <span style={{ fontSize: '15px', fontWeight: 600, color: '#111827' }}>
                               {c.label}
-                              {/* <span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 400, marginLeft: '4px' }}>
-                                (max {c.maxPoints} pts)
-                              </span> */}
                             </span>
                             <span style={{ fontSize: '13px', fontWeight: 700, color: '#5006ba' }}>
-                              {value}
+                              {value}<span style={{ fontSize: '10px', color: '#9CA3AF', fontWeight: 400 }}>/100</span>
                             </span>
                           </div>
                           <input
                             type="range"
-                            className="form-range"
+                            className="rubric-slider"
                             min={0}
                             max={100}
                             step={10}
                             value={value}
                             disabled={!scoringOpen}
                             onChange={(e) => handleSliderChange(c.key, e.target.value)}
-                            style={{
-                              '--value-pct': `${pct}%`,
-                              accentColor: '#5006ba',
-                              opacity: scoringOpen ? 1 : 0.6,
-                            }}
                           />
-                          <p className="mb-0" style={{ fontSize: '14px', color: '#9CA3AF' }}>
+                          <p className="mb-0 mt-1" style={{ fontSize: '13px', color: '#9CA3AF' }}>
                             {c.description}
                           </p>
                         </div>
@@ -248,15 +246,14 @@ export default function RateNominee() {
                   </div>
 
                   {/* Comments */}
-                  <div className="cat-form-field mt-4">
+                  <div className="mt-4">
                     <label className="cat-form-label d-block mb-2">Comments (optional)</label>
                     <textarea
-                      className="cat-form-input"
+                      className="rubric-textarea"
                       rows={3}
                       placeholder="Notes about this nominee's performance…"
                       value={comments}
                       onChange={(e) => setComments(e.target.value)}
-                      style={{ resize: 'vertical' }}
                     />
                   </div>
 
@@ -273,10 +270,9 @@ export default function RateNominee() {
                   )}
                   <button
                     type="button"
-                    className="cat-form-submit mt-3"
+                    className="rubric-submit w-100 mt-4"
                     onClick={handleSubmit}
                     disabled={saving || !scoringOpen}
-                    style={!scoringOpen ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                   >
                     {saving ? (
                       <><output className="spinner-border spinner-border-sm me-2"></output>Submitting…</>

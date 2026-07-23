@@ -3,14 +3,43 @@ import { motion } from 'framer-motion';
 import { useNomineeData } from '../hooks/useQueries';
 
 // Read-only platform data viewer used by jury when scoring a nominee.
-// Mirrors the platform tabs from NomineeProfile but with no edit controls.
+// Only 3 platforms: Instagram, YouTube, TikTok.
 const PLATFORMS = [
   { key: 'instagram', label: 'Instagram', icon: 'bi-instagram', followerLabel: 'Followers' },
-  { key: 'twitter', label: 'Twitter', icon: 'bi-twitter', followerLabel: 'Followers' },
   { key: 'youtube', label: 'YouTube', icon: 'bi-youtube', followerLabel: 'Subscribers' },
   { key: 'tiktok', label: 'TikTok', icon: 'bi-tiktok', followerLabel: 'Followers' },
-  { key: 'facebook', label: 'Facebook', icon: 'bi-facebook', followerLabel: 'Followers' },
 ];
+
+// Per-platform stat definitions for read-only display
+const PLATFORM_STATS = {
+  instagram: [
+    { key: 'followers', label: 'Followers', format: 'count' },
+    { key: 'followerGrowth', label: 'Follower Growth', format: 'percent' },
+    { key: 'er', label: 'ER', format: 'percent' },
+    { key: 'videoViews', label: 'Video Views', format: 'count' },
+    { key: 'postViews', label: 'Post Views', format: 'count' },
+    { key: 'audienceQuality', label: 'Audience Quality', format: 'percent' },
+    { key: 'audiencePakistan', label: 'Aud Based in Pakistan', format: 'percent' },
+    { key: 'likersQuality', label: 'Likers Quality', format: 'percent' },
+    { key: 'likersPakistan', label: 'Likers from Pakistan', format: 'percent' },
+  ],
+  tiktok: [
+    { key: 'followers', label: 'Followers', format: 'count' },
+    { key: 'followerGrowth', label: 'Follower Growth', format: 'percent' },
+    { key: 'er', label: 'ER', format: 'percent' },
+    { key: 'videoViews', label: 'Video Views', format: 'count' },
+    { key: 'audienceQuality', label: 'Audience Quality', format: 'percent' },
+    { key: 'audiencePakistan', label: 'Aud Based in Pakistan', format: 'percent' },
+  ],
+  youtube: [
+    { key: 'followers', label: 'Subscribers', format: 'count' },
+    { key: 'followerGrowth', label: 'Follower Growth', format: 'percent' },
+    { key: 'er', label: 'ER', format: 'percent' },
+    { key: 'videoViews', label: 'Video Views', format: 'count' },
+    { key: 'audienceQuality', label: 'Audience Quality', format: 'percent' },
+    { key: 'audiencePakistan', label: 'Aud Based in Pakistan', format: 'percent' },
+  ],
+};
 
 const formatCount = (n) => {
   const num = Number(n) || 0;
@@ -19,12 +48,25 @@ const formatCount = (n) => {
   return String(num);
 };
 
+const formatPercent = (n) => {
+  const num = Number(n) || 0;
+  return num + '%';
+};
+
+const formatValue = (value, format) => {
+  if (value == null || value === '' || value === 0) return '—';
+  if (format === 'count') return formatCount(value);
+  if (format === 'percent') return formatPercent(value);
+  return String(value);
+};
+
 export default function PlatformDataView({ nomineeId }) {
   const { data: nomineeData, isLoading } = useNomineeData(nomineeId);
   const [activeTab, setActiveTab] = useState('instagram');
 
   const activePlatform = PLATFORMS.find((p) => p.key === activeTab);
   const platformData = nomineeData?.[activeTab] || {};
+  const stats = PLATFORM_STATS[activeTab] || [];
 
   return (
     <motion.div
@@ -36,7 +78,7 @@ export default function PlatformDataView({ nomineeId }) {
       {/* Tab bar */}
       <div className="d-flex flex-wrap gap-1 p-2 border-bottom">
         {PLATFORMS.map((p) => {
-          const hasData = nomineeData?.[p.key]?.followers || nomineeData?.[p.key]?.image;
+          const hasData = nomineeData?.[p.key]?.followers || nomineeData?.[p.key]?.profileUrl;
           return (
             <button
               key={p.key}
@@ -63,56 +105,54 @@ export default function PlatformDataView({ nomineeId }) {
             </p>
           </div>
         ) : (
-          <div className="row g-4 align-items-center">
-            {/* Image */}
-            <div className="col-12 col-md-4">
-              <div className="d-flex flex-column align-items-center gap-2">
-                <div
-                  className="clt-avatar"
-                  style={{ width: '120px', height: '120px', overflow: 'hidden', borderRadius: '12px', fontSize: '40px' }}
+          <div>
+            {/* Profile URL link */}
+            {platformData.profileUrl && (
+              <div className="mb-3">
+                <a
+                  href={platformData.profileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: '13px', color: '#5006ba', wordBreak: 'break-all' }}
                 >
-                  {platformData.image ? (
-                    <img src={platformData.image} alt={activePlatform?.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <i className={`bi ${activePlatform?.icon}`} style={{ fontSize: '40px', color: '#9CA3AF' }}></i>
-                  )}
-                </div>
-                <span className="cat-form-label" style={{ fontSize: '13px' }}>{activePlatform?.label}</span>
+                  <i className={`bi ${activePlatform?.icon} me-1`}></i>
+                  {platformData.profileUrl}
+                </a>
               </div>
+            )}
+
+            {/* Stats grid */}
+            <div className="row g-2">
+              {stats.map((stat) => {
+                const value = platformData[stat.key];
+                const hasValue = value != null && value !== '' && value !== 0;
+                return (
+                  <div key={stat.key} className="col-6 col-md-4">
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid #E5E7EB',
+                        background: '#F9FAFB',
+                      }}
+                    >
+                      <div style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500, marginBottom: '4px' }}>
+                        {stat.label}
+                      </div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: hasValue ? '#111827' : '#D1D5DB' }}>
+                        {formatValue(value, stat.format)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Followers stat */}
-            <div className="col-12 col-md-8">
-              <div className="cat-form-field">
-                <label className="cat-form-label d-block mb-2">{activePlatform?.followerLabel}</label>
-                <div
-                  className="d-flex align-items-center gap-2"
-                  style={{
-                    padding: '14px 16px',
-                    borderRadius: '10px',
-                    border: '1px solid #E5E7EB',
-                    background: '#F9FAFB',
-                    fontSize: '18px',
-                    fontWeight: 600,
-                    color: '#111827',
-                  }}
-                >
-                  <i className={`bi ${activePlatform?.icon}`} style={{ color: '#5006ba' }}></i>
-                  {platformData.followers ? formatCount(platformData.followers) : '—'}
-                  {platformData.followers ? (
-                    <span style={{ fontSize: '13px', fontWeight: 400, color: '#6B7280' }}>
-                      ({Number(platformData.followers).toLocaleString()} total)
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-
-              {!platformData.followers && !platformData.image && (
-                <p className="mb-0 mt-3" style={{ color: '#9CA3AF', fontSize: '13px' }}>
-                  No {activePlatform?.label} data has been added for this nominee yet.
-                </p>
-              )}
-            </div>
+            {!platformData.followers && !platformData.profileUrl && (
+              <p className="mb-0 mt-3" style={{ color: '#9CA3AF', fontSize: '13px' }}>
+                No {activePlatform?.label} data has been added for this nominee yet.
+              </p>
+            )}
           </div>
         )}
       </div>

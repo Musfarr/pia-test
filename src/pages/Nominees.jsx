@@ -185,7 +185,13 @@ export default function Nominees() {
                       <tr key={item._id} className="clt-row">
                         <td className="ps-4 py-3">
                           <div className="d-flex align-items-center gap-3">
-                            <div className="clt-avatar">{item.name.charAt(0).toUpperCase()}</div>
+                            <div className="clt-avatar" style={{ overflow: 'hidden' }}>
+                            {item.profileImage ? (
+                              <img src={item.profileImage} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              item.name.charAt(0).toUpperCase()
+                            )}
+                          </div>
                             <div className="clt-name">{item.name}</div>
                           </div>
                         </td>

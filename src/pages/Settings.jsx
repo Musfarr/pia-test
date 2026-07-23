@@ -7,8 +7,8 @@ import { useSettings, useUpdateGlobalStage } from '../hooks/useQueries';
 const STAGES = [
   { key: 'setup', label: 'Setup', icon: 'bi-gear', color: '#6B7280', description: 'Nominees are visible but no one can score or vote.' },
   { key: 'creator_rating', label: 'Creator Jury Rating', icon: 'bi-pencil-square', color: '#5006ba', description: 'Only Creator Jury members can score nominees.' },
-  { key: 'executive_rating', label: 'Executive Jury Rating', icon: 'bi-award', color: '#D97706', description: 'Only Executive Jury members can score finalists.' },
-  { key: 'public_voting', label: 'Public Voting', icon: 'bi-people', color: '#059669', description: 'Only public voting is open. Creator & Executive Jury cannot score.' },
+  { key: 'executive_rating', label: 'Executive Jury Rating', icon: 'bi-award', color: '#5006ba', description: 'Only Executive Jury members can score finalists.' },
+  { key: 'public_voting', label: 'Public Voting', icon: 'bi-people', color: '#5006ba', description: 'Only public voting is open. Creator & Executive Jury cannot score.' },
   { key: 'completed', label: 'Completed', icon: 'bi-check-circle', color: '#2563EB', description: 'Results are finalized. No scoring or voting allowed.' },
 ];
 
@@ -87,7 +87,7 @@ export default function Settings() {
       </motion.div>
 
       {/* Current stage banner */}
-      <motion.div
+      {/* <motion.div
         className="card cat-form-card mb-4"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
@@ -121,7 +121,7 @@ export default function Settings() {
             </span>
           )}
         </div>
-      </motion.div>
+      </motion.div> */}
 
       {/* Stage stepper */}
       <motion.div

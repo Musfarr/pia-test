@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useMyNominees, useSettings } from '../hooks/useQueries';
 import KpiCards from '../components/kpis/KpiCards';
 
 export default function MyNominees() {
+  const navigate = useNavigate();
   const { data: nominees = [], isLoading } = useMyNominees();
   const { data: settings } = useSettings();
   const [search, setSearch] = useState('');
@@ -147,10 +148,21 @@ export default function MyNominees() {
                     </tr>
                   ) : (
                     filtered.map((item) => (
-                      <tr key={item._id} className="clt-row">
+                      <tr
+                        key={item._id}
+                        className="clt-row"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => navigate(`/dashboard/my-nominees/${item._id}`)}
+                      >
                         <td className="ps-4 py-3">
                           <div className="d-flex align-items-center gap-3">
-                            <div className="clt-avatar">{item.name.charAt(0).toUpperCase()}</div>
+                            <div className="clt-avatar" style={{ overflow: 'hidden' }}>
+                              {item.profileImage ? (
+                                <img src={item.profileImage} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                item.name.charAt(0).toUpperCase()
+                              )}
+                            </div>
                             <div className="clt-name">{item.name}</div>
                           </div>
                         </td>
@@ -179,13 +191,7 @@ export default function MyNominees() {
                           )}
                         </td>
                         <td className="pe-4 text-center">
-                          <Link
-                            to={`/dashboard/my-nominees/${item._id}`}
-                            className="clt-action-btn"
-                            title={scoringOpen ? 'Rate nominee' : 'View nominee (scoring closed)'}
-                          >
-                            <i className="bi bi-star"></i>
-                          </Link>
+                          <i className="bi bi-chevron-right" style={{ fontSize: '14px', color: '#9CA3AF' }}></i>
                         </td>
                       </tr>
                     ))

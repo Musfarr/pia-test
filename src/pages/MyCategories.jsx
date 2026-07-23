@@ -82,7 +82,7 @@ export default function MyCategories() {
       </div>
 
       {/* Global stage banner — read-only for category admin */}
-      <motion.div
+      {/* <motion.div
         className="card cat-form-card mb-3"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
@@ -107,12 +107,12 @@ export default function MyCategories() {
             </h6>
           </div>
         </div>
-      </motion.div>
+      </motion.div> */}
 
       {/* Category cards */}
       <div className="row g-3">
         {categories.map((category, i) => (
-          <div key={category._id} className="col-12 col-md-6">
+          <div key={category._id} className="col-12 col-md-3">
             <motion.div
               className="card cat-form-card h-100"
               initial={{ opacity: 0, y: 18 }}

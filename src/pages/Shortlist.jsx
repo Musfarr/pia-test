@@ -5,8 +5,8 @@ import { useShortlists, useSettings } from '../hooks/useQueries';
 // Stage filter chips shown above the table
 const STAGE_FILTERS = [
   { key: 'creator', label: 'Creator Jury · Top 10', color: '#5006ba', icon: 'bi-pencil-square' },
-  { key: 'executive', label: 'Executive Jury · Top 5', color: '#D97706', icon: 'bi-award' },
-  { key: 'public', label: 'Public Voting Finalists', color: '#059669', icon: 'bi-people' },
+  { key: 'executive', label: 'Executive Jury · Top 5', color: '#5006ba', icon: 'bi-award' },
+  { key: 'public', label: 'Public Voting Finalists', color: '#5006ba', icon: 'bi-people' },
 ];
 
 // Theme signature gradient — used across the app for avatars, buttons, active tabs.
@@ -19,9 +19,10 @@ function NomineeCard({ row, index }) {
   const nomineeName = typeof nominee === 'object' ? nominee?.name : 'Unknown';
   const initial = nomineeName.charAt(0).toUpperCase();
   const isPodium = row.rank <= 3;
+  const profileImage = typeof nominee === 'object' ? nominee?.profileImage : null;
 
-  // Placeholder grey avatar — will be swapped for real images when available
-  const placeholderImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomineeName)}&size=400&background=E8E8EC&color=9CA3AF&bold=true`;
+  // Use nominee's profile photo if available, otherwise fall back to initial-letter avatar
+  const cardImage = profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(nomineeName)}&size=400&background=E8E8EC&color=9CA3AF&bold=true`;
 
   return (
     <motion.div
@@ -35,7 +36,7 @@ function NomineeCard({ row, index }) {
         className="sl-card sl-card--image-dominant"
         style={{
           background: '#F4F4F6',
-          borderRadius: '18px',
+          borderRadius: '8px',
           position: 'relative',
           overflow: 'hidden',
           boxShadow: isPodium
@@ -46,7 +47,7 @@ function NomineeCard({ row, index }) {
         {/* Image section — majority of card */}
         <div className="sl-image-wrap" style={{ position: 'relative', height: '240px', overflow: 'hidden' }}>
           <img
-            src={placeholderImg}
+            src={cardImage}
             alt={nomineeName}
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             onError={(e) => { e.target.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="#E8E8EC"/><text x="50%" y="50%" font-size="120" font-weight="bold" fill="#9CA3AF" text-anchor="middle" dy=".35em">${initial}</text></svg>`)}`; }}
@@ -59,8 +60,8 @@ function NomineeCard({ row, index }) {
             style={{
               position: 'absolute',
               top: 10, left: 10,
-              background: THEME_GRADIENT,
-              color: '#fff',
+              background:'rgb(31 30 31)' ,
+              color: '#dbff00',
               fontSize: '13px',
               fontWeight: 700,
               width: '32px', height: '32px',
@@ -77,9 +78,9 @@ function NomineeCard({ row, index }) {
             <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
               {nomineeName}
             </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
+            {/* <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
               {typeof nominee === 'object' ? nominee?.season : '—'}
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -101,26 +102,26 @@ function NomineeCard({ row, index }) {
           <div className="d-flex gap-2">
             <div style={{ flex: 1, background: 'rgba(255,255,255,0.12)', borderRadius: '8px', padding: '8px 10px', backdropFilter: 'blur(4px)' }}>
               <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Creator</div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: '#dbff00' }}>
                 {row.creatorScore > 0 ? row.creatorScore.toFixed(1) : '—'}
-                {row.creatorScore > 0 && <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)' }}>/30</span>}
+                {row.creatorScore > 0 && <span style={{ fontSize: '20px', color: 'rgba(255,255,255,0.6)' }}>/30</span>}
               </div>
             </div>
             <div style={{ flex: 1, background: 'rgba(255,255,255,0.12)', borderRadius: '8px', padding: '8px 10px', backdropFilter: 'blur(4px)' }}>
               <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Executive</div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: '#dbff00' }}>
                 {row.executiveScore > 0 ? row.executiveScore.toFixed(1) : '—'}
-                {row.executiveScore > 0 && <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)' }}>/40</span>}
+                {row.executiveScore > 0 && <span style={{ fontSize: '20px', color: 'rgba(255,255,255,0.6)' }}>/40</span>}
               </div>
             </div>
           </div>
-          <div className="d-flex align-items-center justify-content-between mt-2" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>
-            <span>
+          <div className="d-flex align-items-center justify-content-center mt-2" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>
+            {/* <span>
               {row.creatorJuryCount > 0 && <span className="me-2">C: {row.creatorJuryCount}</span>}
               {row.executiveJuryCount > 0 && <span>E: {row.executiveJuryCount}</span>}
-            </span>
-            <span style={{ fontWeight: 700, color: '#fff', fontSize: '13px' }}>
-              {row.score.toFixed(1)}<span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)' }}>/70</span>
+            </span> */}
+            <span style={{ fontWeight: 700, color: '#dbff00', fontSize: '22px' }}>
+              {row.score.toFixed(1)}<span style={{ fontSize: '22px', color: 'rgba(255,255,255,0.6)' }}>/70</span>
             </span>
           </div>
         </div>
@@ -203,6 +204,15 @@ export default function Shortlist() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05 }}
       >
+          {/* border-radius: 5px;
+    padding: 12px 18px;
+    font-size: 16px;
+    font-weight: 600;
+    border: 2px solid rgb(80 6 186 / 63%);
+    background: #f3f4f6;
+    color: rgb(80, 6, 186); */}
+
+
         {STAGE_FILTERS.map((s) => {
           const active = stageFilter === s.key;
           return (
@@ -212,12 +222,12 @@ export default function Shortlist() {
               onClick={() => { setStageFilter(s.key); setActiveCategory(null); }}
               className="btn btn-sm"
               style={{
-                borderRadius: '20px',
-                padding: '7px 16px',
-                fontSize: '12px',
-                fontWeight: 600,
-                border: active ? `1px solid ${s.color}` : '1px solid #E5E7EB',
-                background: active ? `${s.color}10` : '#fff',
+                borderRadius: '5px',
+                padding: '12px 18px',
+                fontSize: '16px',
+                fontWeight: '600',
+                border: active ? `2px solid ${s.color}` : '1px solid #E5E7EB',
+                background: active ? `#fff` : '#fff',
                 color: active ? s.color : '#6B7280',
               }}
             >

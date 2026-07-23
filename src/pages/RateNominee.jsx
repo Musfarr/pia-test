@@ -15,6 +15,13 @@ const REQUIRED_STAGE = {
   executive_jury: 'executive_rating',
 };
 
+// Social platform buttons shown in the header — expand on hover, active = pressed in
+const SOCIAL_BUTTONS = [
+  { key: 'instagram', label: 'Instagram', icon: 'bi-instagram' },
+  { key: 'youtube', label: 'YouTube', icon: 'bi-youtube' },
+  { key: 'tiktok', label: 'TikTok', icon: 'bi-tiktok' },
+];
+
 export default function RateNominee() {
   const { id } = useParams();
   const queryClient = useQueryClient();
@@ -23,6 +30,7 @@ export default function RateNominee() {
   const { data: nominee, isLoading: nomineeLoading } = useNominee(id);
   const { data: existingScore, isLoading: scoreLoading } = useMyScore(id);
   const { data: settings } = useSettings();
+  const [activePlatform, setActivePlatform] = useState('instagram');
 
   const requiredStage = REQUIRED_STAGE[role];
   const currentStage = settings?.currentStage || 'setup';
@@ -131,9 +139,14 @@ export default function RateNominee() {
         </motion.div>
       )}
 
+
+      <div className='row g-4'>
+
+
+      <div  className='col-12 col-lg-8'>
       {/* Header */}
       <motion.div
-        className="card cat-form-card mb-4"
+        className="card cat-form-card mb-4  "
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
@@ -152,18 +165,28 @@ export default function RateNominee() {
             </div>
             <div>
               <h6 className="cat-form-title mb-1">{nominee?.name || 'Nominee'}</h6>
-              <p className="cat-form-subtitle mb-0">
+              <p className="cat-form-subtitle mb-2">
                 {nominee?.categoryId?.name && (
                   <span className="clt-badge me-2" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>
                     {nominee.categoryId.name}
                   </span>
                 )}
-                {nominee?.season && (
-                  <span className="clt-badge" style={{ backgroundColor: '#D1FAE5', color: '#059669' }}>
-                    Season {nominee.season}
-                  </span>
-                )}
               </p>
+              {/* Social platform buttons — expand on hover, active = pressed in */}
+              <div className="social-links">
+                {SOCIAL_BUTTONS.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    className={`social-btn social-btn--${p.key} ${activePlatform === p.key ? 'social-btn--active' : ''}`}
+                    onClick={() => setActivePlatform(p.key)}
+                    title={p.label}
+                  >
+                    <i className={`bi ${p.icon}`}></i>
+                    <span>{p.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           {existingScore?.submittedAt && (
@@ -175,14 +198,13 @@ export default function RateNominee() {
         </div>
       </motion.div>
 
-      <div className="row g-4">
-        {/* Left: nominee platform data (read-only) */}
-        <div className="col-12 col-lg-7">
-          <PlatformDataView nomineeId={id} />
+        <div className="">
+          <PlatformDataView nomineeId={id} activeTab={activePlatform} onTabChange={setActivePlatform} />
         </div>
 
-        {/* Right: scoring panel */}
-        <div className="col-12 col-lg-5">
+      </div>
+
+      <div className="col-12 col-lg-4">
           <motion.div
             className="rubric-card"
             initial={{ opacity: 0, y: 18 }}
@@ -214,7 +236,7 @@ export default function RateNominee() {
               ) : (
                 <>
                   {/* Sliders — each criterion scored 0-100, step 10 */}
-                  <div className="d-flex flex-column gap-4">
+                  <div className="d-flex flex-column gap-3">
                     {criteria.map((c) => {
                       const value = Number(scores[c.key]) || 0;
                       return (
@@ -287,7 +309,10 @@ export default function RateNominee() {
             </div>
           </motion.div>
         </div>
+
+
       </div>
+
     </div>
   );
 }

@@ -1848,6 +1848,15 @@ body {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.08), -2px -2px 5px rgba(255, 255, 255, 0.9);
 }
 
+/* ── Finalist card hover overlay (slide up from bottom) ── */
+.finalist-hover-info {
+  pointer-events: none;
+}
+
+div:hover > .finalist-hover-info {
+  transform: translateY(0) !important;
+}
+
 /* ── Profile URL card (neumorphic link) ── */
 .profile-url-card {
   display: flex;

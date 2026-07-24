@@ -241,7 +241,7 @@ export default function Settings() {
       </motion.div>
 
       {/* Stage descriptions table */}
-      <motion.div
+      {/* <motion.div
         className="card clt-card"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
@@ -293,7 +293,7 @@ export default function Settings() {
           </table>
         </div>
         </div>
-      </motion.div>
+      </motion.div> */}
 
       {/* Confirmation modal */}
       {pendingStage && (

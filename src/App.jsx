@@ -26,7 +26,6 @@ import { AuthProvider, useAuth } from './context/AuthProvider.jsx';
 import { PublicAuthProvider } from './context/PublicAuthProvider.jsx';
 import PublicProtectedRoute from './components/public/PublicProtectedRoute.jsx';
 import PublicLayout from './components/public/PublicLayout.jsx';
-import PublicRegister from './pages/public/PublicRegister.jsx';
 import PublicVerifyOtp from './pages/public/PublicVerifyOtp.jsx';
 import PublicLogin from './pages/public/PublicLogin.jsx';
 import PublicCategories from './pages/public/PublicCategories.jsx';
@@ -68,16 +67,12 @@ function AppContent() {
     },
     // ── Public voting routes (separate auth, no sidebar) ──
     {
-      path: '/vote/register',
-      element: <PublicRegister />,
+      path: '/vote/login',
+      element: <PublicLogin />,
     },
     {
       path: '/vote/verify-otp',
       element: <PublicVerifyOtp />,
-    },
-    {
-      path: '/vote/login',
-      element: <PublicLogin />,
     },
     {
       path: '/vote',

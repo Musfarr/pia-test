@@ -1,41 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useVoterLogin } from '../../hooks/usePublicQueries';
-import { usePublicAuth } from '../../context/PublicAuthProvider';
+import { useRequestOtp } from '../../hooks/usePublicQueries';
+import logo from '../../assets/logow.png';
 
 export default function PublicLogin() {
   const navigate = useNavigate();
-  const { setVoterSession } = usePublicAuth();
-  const loginMutation = useVoterLogin();
+  const requestOtpMutation = useRequestOtp();
 
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
-  const [needsVerify, setNeedsVerify] = useState('');
+
+  const validate = () => {
+    const e = {};
+    if (!name.trim()) e.name = 'Name is required';
+    if (!phone.trim()) e.phone = 'Phone is required';
+    else if (!/^\d{10}$/.test(phone.replace(/\D/g, ''))) e.phone = 'Enter a valid 10-digit phone';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setServerError('');
-    setNeedsVerify('');
-
-    if (!identifier || !password) {
-      setServerError('Please enter your phone/username and password');
-      return;
-    }
+    if (!validate()) return;
 
     try {
-      const data = await loginMutation.mutateAsync({ identifier, password });
-      setVoterSession(data);
-      navigate('/vote');
+      await requestOtpMutation.mutateAsync({ name: name.trim(), phone: phone.trim() });
+      navigate('/vote/verify-otp', { state: { phone: phone.trim(), name: name.trim() } });
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed';
-      if (err.response?.status === 403 && err.response?.data?.phone) {
-        setNeedsVerify(err.response.data.phone);
-      } else {
-        setServerError(msg);
-      }
+      setServerError(err.response?.data?.message || 'Failed to send OTP');
     }
   };
 
@@ -47,11 +43,10 @@ export default function PublicLogin() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
       >
-        <div className="pv-auth-logo">
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#5006ba' }}>PIA</div>
+        <div className="login-logo-section">
+          <img src={logo} width={180} alt="PIA" />
         </div>
-        <h1 className="pv-auth-title">Welcome Back</h1>
-        <p className="pv-auth-subtitle">Log in to vote for your favorites</p>
+        <p className="pv-auth-subtitle">Vote for Pakistan's Influencer Awards</p>
 
         {serverError && (
           <div className="pv-error">
@@ -60,59 +55,40 @@ export default function PublicLogin() {
           </div>
         )}
 
-        {needsVerify && (
-          <div className="pv-error" style={{ background: '#FEF3C7', color: '#92400E', borderColor: '#FDE68A' }}>
-            <i className="bi bi-phone"></i>
-            <span>Phone not verified. <a href="/vote/verify-otp" style={{ color: '#92400E', fontWeight: 700 }}>Verify now</a></span>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit}>
           <div className="pv-field">
-            <label className="pv-label">Phone or Username</label>
+            <label className="pv-label">Full Name</label>
             <input
               className="pv-input"
               type="text"
-              placeholder="e.g. 3XX1234567 or your_username"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => { setName(e.target.value); if (errors.name) setErrors({ ...errors, name: '' }); }}
             />
+            {errors.name && <div style={{ fontSize: '12px', color: '#DC2626', marginTop: '4px' }}>{errors.name}</div>}
           </div>
 
           <div className="pv-field">
-            <label className="pv-label">Password</label>
-            <div style={{ position: 'relative' }}>
+            <label className="pv-label">Phone</label>
+            <div className="pv-input-group">
+              <span className="pv-input-prefix">+92</span>
               <input
                 className="pv-input"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingRight: '48px' }}
+                type="tel"
+                placeholder="3XX XXXXXXX"
+                value={phone}
+                onChange={(e) => { setPhone(e.target.value); if (errors.phone) setErrors({ ...errors, phone: '' }); }}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '18px',
-                }}
-              >
-                <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
-              </button>
             </div>
+            {errors.phone && <div style={{ fontSize: '12px', color: '#DC2626', marginTop: '4px' }}>{errors.phone}</div>}
           </div>
 
-          <button type="submit" className="pv-btn-primary" disabled={loginMutation.isPending}>
-            {loginMutation.isPending ? (
-              <><output className="spinner-border spinner-border-sm me-2"></output>Logging in…</>
-            ) : 'Log In'}
+          <button type="submit" className="pv-btn-primary" disabled={requestOtpMutation.isPending}>
+            {requestOtpMutation.isPending ? (
+              <><output className="spinner-border spinner-border-sm me-2"></output>Sending…</>
+            ) : 'Vote Now'}
           </button>
         </form>
-
-        <div className="pv-link">
-          New here? <a href="/vote/register">Create an account</a>
-        </div>
       </motion.div>
     </div>
   );

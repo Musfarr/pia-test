@@ -36,7 +36,7 @@ function NomineeCard({ row, index }) {
         className="sl-card sl-card--image-dominant"
         style={{
           background: '#F4F4F6',
-          borderRadius: '8px',
+          borderRadius: '4px',
           position: 'relative',
           overflow: 'hidden',
           boxShadow: isPodium
@@ -74,8 +74,8 @@ function NomineeCard({ row, index }) {
           </div>
 
           {/* Name + season (always visible, overlaid on image) */}
-          <div style={{ position: 'absolute', bottom: 10, left: 14, right: 14 }}>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+          <div style={{ position: 'absolute', bottom: 14, left: 14, right: 14 }}>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff', lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
               {nomineeName}
             </div>
             {/* <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
@@ -85,7 +85,7 @@ function NomineeCard({ row, index }) {
         </div>
 
         {/* Basic stats bar — always visible */}
-        <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500 }}>
             <i className="bi bi-bar-chart me-1" style={{ color: '#6510b4' }}></i>
             {row.score.toFixed(1)}<span style={{ fontSize: '10px', color: '#9CA3AF' }}>/70</span>
@@ -95,7 +95,7 @@ function NomineeCard({ row, index }) {
               ? `${row.creatorJuryCount + row.executiveJuryCount} votes`
               : 'No votes'}
           </span>
-        </div>
+        </div> */}
 
         {/* Hover stats overlay — slides up on hover */}
         <div className="sl-hover-stats">

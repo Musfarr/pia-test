@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  voterRegister,
+  requestOtp,
   voterVerifyOtp,
-  voterLogin,
   getPublicCategories,
   getPublicShortlist,
   castVote,
@@ -10,16 +9,12 @@ import {
 } from '../util/publicApi';
 
 // ── Auth mutations ──
-export const useVoterRegister = () => {
-  return useMutation({ mutationFn: voterRegister });
+export const useRequestOtp = () => {
+  return useMutation({ mutationFn: requestOtp });
 };
 
 export const useVoterVerifyOtp = () => {
   return useMutation({ mutationFn: voterVerifyOtp });
-};
-
-export const useVoterLogin = () => {
-  return useMutation({ mutationFn: voterLogin });
 };
 
 // ── Categories ──

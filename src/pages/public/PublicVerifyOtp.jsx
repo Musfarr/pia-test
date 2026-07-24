@@ -1,17 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useVoterVerifyOtp } from '../../hooks/usePublicQueries';
+import { useVoterVerifyOtp, useRequestOtp } from '../../hooks/usePublicQueries';
 import { usePublicAuth } from '../../context/PublicAuthProvider';
+import logo from '../../assets/logow.png';
 
 export default function PublicVerifyOtp() {
   const navigate = useNavigate();
   const location = useLocation();
   const { setVoterSession } = usePublicAuth();
   const verifyMutation = useVoterVerifyOtp();
+  const resendMutation = useRequestOtp();
 
   const phone = location.state?.phone || '';
-  const username = location.state?.username || '';
+  const name = location.state?.name || '';
 
   const [digits, setDigits] = useState(['', '', '', '', '']);
   const [error, setError] = useState('');
@@ -28,6 +30,11 @@ export default function PublicVerifyOtp() {
       return () => clearTimeout(t);
     }
   }, [resendTimer]);
+
+  // If no phone in state, redirect back to login
+  useEffect(() => {
+    if (!phone) navigate('/vote/login', { replace: true });
+  }, [phone, navigate]);
 
   const maskedPhone = phone ? `+92••• ••${phone.slice(-4)}` : '';
 
@@ -64,15 +71,18 @@ export default function PublicVerifyOtp() {
       navigate('/vote');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid code');
-      // Shake animation
       setDigits(['', '', '', '', '']);
       refs.current[0]?.focus();
     }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     setResendTimer(30);
-    // Cosmetic — static OTP, no actual resend needed
+    try {
+      await resendMutation.mutateAsync({ name, phone });
+    } catch {
+      // Silent — static OTP, resend is cosmetic
+    }
   };
 
   return (
@@ -83,8 +93,8 @@ export default function PublicVerifyOtp() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
       >
-        <div className="pv-auth-logo">
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#5006ba' }}>PIA</div>
+        <div className="login-logo-section">
+          <img src={logo} width={180} alt="PIA" />
         </div>
         <h1 className="pv-auth-title">Verify Your Phone</h1>
         <p className="pv-auth-subtitle">We sent a code to {maskedPhone}</p>
@@ -128,8 +138,12 @@ export default function PublicVerifyOtp() {
           {resendTimer > 0 ? (
             <span>Resend code in {resendTimer}s</span>
           ) : (
-            <button onClick={handleResend}>Resend code</button>
+            <button onClick={handleResend} disabled={resendMutation.isPending}>Resend code</button>
           )}
+        </div>
+
+        <div className="pv-link">
+          <a href="/vote/login">Change phone number</a>
         </div>
       </motion.div>
     </div>

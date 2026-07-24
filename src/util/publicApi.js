@@ -31,18 +31,13 @@ publicApi.interceptors.response.use(
 );
 
 // ── Auth ──
-export const voterRegister = async (data) => {
-  const res = await publicApi.post('/public/register', data);
+export const requestOtp = async (data) => {
+  const res = await publicApi.post('/public/request-otp', data);
   return res.data;
 };
 
 export const voterVerifyOtp = async (data) => {
   const res = await publicApi.post('/public/verify-otp', data);
-  return res.data;
-};
-
-export const voterLogin = async (data) => {
-  const res = await publicApi.post('/public/login', data);
   return res.data;
 };
 

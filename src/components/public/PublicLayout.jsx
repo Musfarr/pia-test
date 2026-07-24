@@ -16,7 +16,7 @@ export default function PublicLayout() {
       {/* Top bar */}
       <div className="pv-topbar">
         <div className="pv-topbar-left">
-          <span className="pv-topbar-logo">PIA</span>
+          {/* <span className="pv-topbar-logo">PIA</span> */}
           {voter && (
             <span className="pv-topbar-greeting">Hi, {voter.name?.split(' ')[0]}</span>
           )}

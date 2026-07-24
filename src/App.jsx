@@ -21,7 +21,17 @@ import { getDefaultRoute } from './util/roles';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './styles/dashboard.css';
+import './styles/public.css';
 import { AuthProvider, useAuth } from './context/AuthProvider.jsx';
+import { PublicAuthProvider } from './context/PublicAuthProvider.jsx';
+import PublicProtectedRoute from './components/public/PublicProtectedRoute.jsx';
+import PublicLayout from './components/public/PublicLayout.jsx';
+import PublicRegister from './pages/public/PublicRegister.jsx';
+import PublicVerifyOtp from './pages/public/PublicVerifyOtp.jsx';
+import PublicLogin from './pages/public/PublicLogin.jsx';
+import PublicCategories from './pages/public/PublicCategories.jsx';
+import PublicCategoryShortlist from './pages/public/PublicCategoryShortlist.jsx';
+import PublicMyVotes from './pages/public/PublicMyVotes.jsx';
 
 function AppContent() {
   const { isLoggedIn, user, SetLogoutData } = useAuth();
@@ -56,6 +66,32 @@ function AppContent() {
       path: '/',
       element: <Navigate to={homeRoute} replace />,
     },
+    // ── Public voting routes (separate auth, no sidebar) ──
+    {
+      path: '/vote/register',
+      element: <PublicRegister />,
+    },
+    {
+      path: '/vote/verify-otp',
+      element: <PublicVerifyOtp />,
+    },
+    {
+      path: '/vote/login',
+      element: <PublicLogin />,
+    },
+    {
+      path: '/vote',
+      element: (
+        <PublicProtectedRoute>
+          <PublicLayout />
+        </PublicProtectedRoute>
+      ),
+      children: [
+        { index: true, element: <PublicCategories /> },
+        { path: 'category/:id', element: <PublicCategoryShortlist /> },
+        { path: 'my-votes', element: <PublicMyVotes /> },
+      ],
+    },
     {
       path: '*',
       element: <Navigate to={homeRoute} replace />,
@@ -68,7 +104,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <PublicAuthProvider>
+        <AppContent />
+      </PublicAuthProvider>
     </AuthProvider>
   );
 }

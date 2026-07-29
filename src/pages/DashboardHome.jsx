@@ -3,13 +3,10 @@ import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import KpiCards from '../components/kpis/KpiCards';
 import StageProgressBar from '../components/kpis/StageProgressBar';
-import ShortlistStatusCards from '../components/kpis/ShortlistStatusCards';
 import TopPerformersLeaderboard from '../components/kpis/TopPerformersLeaderboard';
 import ScoringProgressGauges from '../components/kpis/ScoringProgressGauges';
-import PlatformCompletenessBar from '../components/kpis/PlatformCompletenessBar';
 import CategoryCoverageTable from '../components/kpis/CategoryCoverageTable';
 import JuryActivityChart from '../components/kpis/JuryActivityChart';
-import ScoreDistributionChart from '../components/kpis/ScoreDistributionChart';
 import JuryTable from '../components/JuryTable';
 import { useJuries } from '../hooks/useQueries';
 import { deleteJury, assignJuryCategory } from '../util/api';
@@ -49,13 +46,13 @@ export default function DashboardHome() {
   return (
     <div className='container-fluid px-3'>
 
-      {/* KPI Row — live, role-aware platform stats */}
+      {/* Row 1: KPI Cards — unchanged */}
       <div className="mb-4">
         <KpiCards />
       </div>
 
-      {/* Platform stage progress */}
-      {/* <motion.div
+      {/* Row 2: Stage progress bar — full width */}
+      <motion.div
         className="row g-4 mb-4"
         variants={rowContainer}
         initial="hidden"
@@ -65,9 +62,9 @@ export default function DashboardHome() {
         <motion.div className="col-12" variants={colItem}>
           <StageProgressBar />
         </motion.div>
-      </motion.div> */}
+      </motion.div>
 
-      {/* Shortlist status + Top performers */}
+      {/* Row 3: Category coverage + Top performers */}
       <motion.div
         className="row g-4 mb-4"
         variants={rowContainer}
@@ -75,15 +72,15 @@ export default function DashboardHome() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
       >
-         <motion.div className="col-6 col-xxl-6" variants={colItem}>
+        <motion.div className="col-12 col-lg-6" variants={colItem}>
           <CategoryCoverageTable />
         </motion.div>
-        <motion.div className="col-6 col-xxl-6" variants={colItem}>
+        <motion.div className="col-12 col-lg-6" variants={colItem}>
           <TopPerformersLeaderboard />
         </motion.div>
       </motion.div>
 
-      {/* Scoring progress gauges + Platform data completeness */}
+      {/* Row 4: Jury needs attention + Scoring progress gauges */}
       <motion.div
         className="row g-4 mb-4"
         variants={rowContainer}
@@ -91,44 +88,15 @@ export default function DashboardHome() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
       >
-        {/* <motion.div className="col-12 col-xxl-6" variants={colItem}>
-          <ScoringProgressGauges />
-        </motion.div> */}
-        {/* <motion.div className="col-12 col-xxl-6" variants={colItem}>
-          <PlatformCompletenessBar />
-        </motion.div> */}
-      </motion.div>
-
-      {/* Per-category coverage + Jury activity */}
-      <motion.div
-        className="row g-4 mb-4"
-        variants={rowContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.15 }}
-      >
-       
-        <motion.div className="col-6 col-xxl-6" variants={colItem}>
+        <motion.div className="col-12 col-lg-6" variants={colItem}>
           <JuryActivityChart />
         </motion.div>
-
-        <motion.div className="col-6" variants={colItem}>
-          <ScoreDistributionChart />
+        <motion.div className="col-12 col-lg-6" variants={colItem}>
+          <ScoringProgressGauges />
         </motion.div>
       </motion.div>
 
-      {/* Score distribution */}
-      <motion.div
-        className="row g-4 mb-4"
-        variants={rowContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.15 }}
-      >
-        
-      </motion.div>
-
-      {/* AI Performance Table */}
+      {/* Row 5: Jury table — unchanged */}
       <motion.div
         className="row g-4 mb-5"
         variants={rowContainer}
@@ -136,7 +104,7 @@ export default function DashboardHome() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
       >
-        <motion.div className="col-12 col-xl-12" variants={colItem}>
+        <motion.div className="col-12" variants={colItem}>
           <JuryTable
             juries={juries}
             onDelete={handleDelete}
@@ -145,9 +113,6 @@ export default function DashboardHome() {
             isLoading={isLoading}
           />
         </motion.div>
-        {/* <div className="col-12 col-xl-4">
-          <TopKeyWords variant="status" />
-        </div> */}
       </motion.div>
 
     </div>

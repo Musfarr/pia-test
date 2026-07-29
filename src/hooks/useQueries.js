@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getCategories, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage, getShortlists, getDashboardStats } from '../util/api';
+import { getCategories, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage, getShortlists, getDashboardStats, getAuditLogs } from '../util/api';
 
 export const useCategories = () => {
   return useQuery({
@@ -106,5 +106,14 @@ export const useDashboardStats = () => {
     queryKey: ['dashboard-stats'],
     queryFn: getDashboardStats,
     refetchInterval: 30000,
+  });
+};
+
+// ── Audit Logs ──
+export const useAuditLogs = (filters = {}) => {
+  return useQuery({
+    queryKey: ['audit-logs', filters],
+    queryFn: () => getAuditLogs(filters),
+    keepPreviousData: true,
   });
 };

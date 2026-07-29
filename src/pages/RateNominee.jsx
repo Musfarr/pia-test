@@ -204,7 +204,7 @@ export default function RateNominee() {
 
       </div>
 
-      <div className="col-12 col-lg-4">
+      <div className="col-12 col-lg-4 sticky">
           <motion.div
             className="rubric-card"
             initial={{ opacity: 0, y: 18 }}

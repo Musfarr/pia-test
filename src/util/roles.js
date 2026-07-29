@@ -53,6 +53,7 @@ export const ROLE_NAV = {
     { href: '/dashboard/nominees', label: 'Nominees', icon: 'bi-person-badge' },
     { href: '/dashboard/shortlist', label: 'Shortlist', icon: 'bi-trophy' },
     { href: '/dashboard/settings', label: 'Settings', icon: 'bi-sliders' },
+    { href: '/dashboard/audit-logs', label: 'Audit Logs', icon: 'bi-shield-check' },
   ],
   category_admin: [
     { href: '/dashboard/my-categories', label: 'Overview', icon: 'bi-grid-1x2' },

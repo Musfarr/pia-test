@@ -1279,8 +1279,10 @@ body {
 }
 
 .leaderboard-rank--default {
-  background: #EEF4FF;
+  /* background: #EEF4FF; */
   color: #5006ba;
+  box-shadow: 3px 3px 8px rgba(0,0,0,0.08), -3px -3px 8px rgba(255,255,255,0.85);
+
 }
 
 /* Generic gradient progress bar (platform completeness, category coverage, leaderboard) */
@@ -1617,6 +1619,24 @@ body {
   box-shadow: 8px 8px 18px rgba(0, 0, 0, 0.08), -8px -8px 18px rgb(165 155 155 / 13%);
 }
 
+/* Sticky rubric — stays fixed while scrolling the left-side platform data */
+.rubric-card--sticky {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  z-index: 100;
+}
+
+/* On mobile (col-12), disable sticky so it flows naturally */
+@media (max-width: 991px) {
+  .rubric-card--sticky {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
 .rubric-header {
   background: #F4F4F6;
   border-radius: 14px;
@@ -1848,6 +1868,211 @@ body {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.08), -2px -2px 5px rgba(255, 255, 255, 0.9);
 }
 
+/* ── PlatformDataView — 3-section redesign ── */
+
+/* Profile snapshot headline */
+.pdv-snapshot {
+  font-size: 13px;
+  color: #6B7280;
+  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(80, 6, 186, 0.04);
+  margin-bottom: 20px;
+  border-left: 3px solid #5006ba;
+}
+
+/* Section spacing */
+.pdv-section {
+  margin-bottom: 24px;
+}
+
+.pdv-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Section header */
+.pdv-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.pdv-section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  background: #F4F4F6;
+  color: #6510b4;
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.06), inset -2px -2px 5px rgba(255,255,255,0.7);
+}
+
+.pdv-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Section 1: Reach tiles ── */
+.pdv-reach-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #F4F4F6;
+  box-shadow: 5px 5px 12px rgba(0,0,0,0.06), -5px -5px 12px rgba(255,255,255,0.85);
+}
+
+.pdv-reach-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  font-size: 20px;
+  background: #F4F4F6;
+  color: #6510b4;
+  box-shadow: inset 3px 3px 6px rgba(0,0,0,0.08), inset -3px -3px 6px rgba(255,255,255,0.6);
+}
+
+.pdv-reach-label {
+  font-size: 12px;
+  color: #9CA3AF;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.pdv-reach-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* ── Section 2: Gauge tiles ── */
+.pdv-gauge-tile {
+  text-align: center;
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: #F4F4F6;
+  box-shadow: inset 3px 3px 6px rgba(0,0,0,0.05), inset -3px -3px 6px rgba(255,255,255,0.6);
+}
+
+.pdv-gauge-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  margin-top: 4px;
+}
+
+/* Growth chip — directional */
+.pdv-growth-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  border-radius: 12px;
+  background: #F4F4F6;
+  border: 2px solid;
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.04), inset -2px -2px 5px rgba(255,255,255,0.6);
+  min-height: 110px;
+}
+
+.pdv-growth-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 110px;
+}
+
+/* ── Section 3: Geography split bars ── */
+.pdv-geo-row {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #F4F4F6;
+  box-shadow: inset 3px 3px 6px rgba(0,0,0,0.05), inset -3px -3px 6px rgba(255,255,255,0.6);
+}
+
+.pdv-geo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.pdv-geo-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.pdv-geo-label i {
+  color: #9CA3AF;
+}
+
+.pdv-geo-pct {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.pdv-geo-track {
+  height: 12px;
+  border-radius: 6px;
+  background: #E5E7EB;
+  overflow: hidden;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.08);
+}
+
+.pdv-geo-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: radial-gradient(circle at 60% 40%, #6510b4, #29055e);
+  transition: width 0.6s ease;
+}
+
+.pdv-geo-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.pdv-geo-legend-pk,
+.pdv-geo-legend-rest {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+}
+
+.pdv-geo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pdv-geo-dot--pk {
+  background: #5006ba;
+}
+
+.pdv-geo-dot--rest {
+  background: #E5E7EB;
+  border: 1px solid #D1D5DB;
+}
+
 /* ── Finalist card hover overlay (slide up from bottom) ── */
 .finalist-hover-info {
   pointer-events: none;
@@ -1855,6 +2080,41 @@ body {
 
 div:hover > .finalist-hover-info {
   transform: translateY(0) !important;
+}
+
+/* ── Audit log action badges (reuses existing semantic colors only) ── */
+.log-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.log-badge--create {
+  background: rgba(80, 6, 186, 0.1);
+  color: #5006ba;
+}
+
+.log-badge--update {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.log-badge--delete {
+  background: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+}
+
+.log-badge--login {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+.log-badge--score {
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
 }
 
 /* ── Profile URL card (neumorphic link) ── */

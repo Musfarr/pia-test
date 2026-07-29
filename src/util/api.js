@@ -192,5 +192,11 @@ export const getDashboardStats = async () => {
   return response.data;
 };
 
+// ── Audit Logs API ──
+export const getAuditLogs = async (params = {}) => {
+  const response = await api.get('/audit-logs', { params });
+  return response.data;
+};
+
 export { API_BASE_URL, AGENT_BASE_URL };
 export default api;

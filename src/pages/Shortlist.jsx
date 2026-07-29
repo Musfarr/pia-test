@@ -26,7 +26,8 @@ function NomineeCard({ row, index }) {
 
   return (
     <motion.div
-      className="col-12 col-sm-6 col-lg-4 col-xl-3"
+      className="col-12 col-6 col-md-4 col-lg-3 col-xl-2-4"
+      style={{ flex: '0 0 20%', maxWidth: '20%' }}
       initial={{ opacity: 0, y: 20, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.45, delay: index * 0.05, ease: [0.23, 1, 0.32, 1] }}
@@ -49,7 +50,7 @@ function NomineeCard({ row, index }) {
           <img
             src={cardImage}
             alt={nomineeName}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            style={{objectPosition:'top', width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             onError={(e) => { e.target.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="#E8E8EC"/><text x="50%" y="50%" font-size="120" font-weight="bold" fill="#9CA3AF" text-anchor="middle" dy=".35em">${initial}</text></svg>`)}`; }}
           />
           {/* Gradient overlay at bottom for name legibility */}
@@ -85,7 +86,7 @@ function NomineeCard({ row, index }) {
         </div>
 
         {/* Basic stats bar — always visible */}
-        {/* <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500 }}>
             <i className="bi bi-bar-chart me-1" style={{ color: '#6510b4' }}></i>
             {row.score.toFixed(1)}<span style={{ fontSize: '10px', color: '#9CA3AF' }}>/70</span>
@@ -95,7 +96,7 @@ function NomineeCard({ row, index }) {
               ? `${row.creatorJuryCount + row.executiveJuryCount} votes`
               : 'No votes'}
           </span>
-        </div> */}
+        </div>
 
         {/* Hover stats overlay — slides up on hover */}
         <div className="sl-hover-stats">

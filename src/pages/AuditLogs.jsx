@@ -1,12 +1,9 @@
-import SkeletonListPage from '../components/SkeletonListPage';
+import AuditLogTable from '../components/AuditLogTable';
 
 export default function AuditLogs() {
   return (
-    <SkeletonListPage
-      title="Audit Logs"
-      subtitle="Login, creation, and rating activity across the platform"
-      columns={['Timestamp', 'User', 'Action', 'Target', 'Details']}
-      emptyMessage="No log entries recorded yet"
-    />
+    <div className="container-fluid px-3">
+      <AuditLogTable />
+    </div>
   );
 }

@@ -159,6 +159,35 @@ function GeographyBar({ label, value, icon }) {
   );
 }
 
+// ── Interest progress bar (animated) ──
+function InterestBar({ name, percentage, type }) {
+  const isLikers = type === 'likers';
+  const color = isLikers ? '#E11D48' : '#6510b4';
+  const fillGradient = isLikers
+    ? 'linear-gradient(90deg, #F43F5E, #E11D48)'
+    : 'linear-gradient(90deg, #8B5CF6, #6510b4)';
+
+  const pct = Math.min(100, Math.max(0, Number(percentage) || 0));
+
+  return (
+    <div className="pdv-interest-row">
+      <div className="pdv-interest-header">
+        <span className="pdv-interest-name">{name}</span>
+        <span className="pdv-interest-pct" style={{ color }}>{pct}%</span>
+      </div>
+      <div className="pdv-interest-track">
+        <motion.div
+          className="pdv-interest-fill"
+          style={{ background: fillGradient }}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ── Section header ──
 function SectionHeader({ icon, title }) {
   return (
@@ -230,6 +259,10 @@ export default function PlatformDataView({ nomineeId, activeTab: controlledTab, 
   const platformData = nomineeData?.[activeTab] || {};
   const sections = PLATFORM_SECTIONS[activeTab] || { reach: [], quality: [], geography: [] };
 
+  const audienceInterests = platformData.interests?.audience || [];
+  const likersInterests = platformData.interests?.likers || [];
+  const hasInterests = audienceInterests.length > 0 || likersInterests.length > 0;
+
   // ── Profile snapshot headline ──
   const snapshotParts = [];
   if (hasValue(platformData.followers)) snapshotParts.push(`${formatCount(platformData.followers)} ${activePlatform?.followerLabel?.toLowerCase() || 'followers'}`);
@@ -259,7 +292,7 @@ export default function PlatformDataView({ nomineeId, activeTab: controlledTab, 
               >
                 <i className={`bi ${p.icon}`}></i>
                 {p.label}
-                {hasData && <span className="badge bg-success ms-1" style={{ fontSize: '9px' }}>•</span>}
+                {hasData && <span className="badge bg-success ms-1" style={{ fontSize: '9px' }}>●</span>}
               </button>
             );
           })}
@@ -296,7 +329,7 @@ export default function PlatformDataView({ nomineeId, activeTab: controlledTab, 
             {/* Profile snapshot headline */}
             {snapshotParts.length > 0 && (
               <div className="pdv-snapshot">
-                {snapshotParts.join(' · ')}
+                {snapshotParts.join(' • ')}
               </div>
             )}
 
@@ -377,8 +410,58 @@ export default function PlatformDataView({ nomineeId, activeTab: controlledTab, 
               </div>
             )}
 
+            {/* Section 4 — Interests & Demographics */}
+            {hasInterests && (
+              <div className="pdv-section">
+                <SectionHeader icon="bi-pie-chart-fill" title="Interests & Demographics" />
+                <div className="row g-3">
+                  {audienceInterests.length > 0 && (
+                    <div className={likersInterests.length > 0 ? "col-12 col-md-6" : "col-12"}>
+                      <div className="pdv-interest-box">
+                        <div className="pdv-interest-cat-title">
+                          <i className="bi bi-people-fill me-1" style={{ color: '#7C3AED' }}></i>
+                          Audience Interests
+                        </div>
+                        <div className="d-flex flex-column gap-2 mt-2">
+                          {audienceInterests.map((item, idx) => (
+                            <InterestBar
+                              key={item._id || idx}
+                              name={item.name}
+                              percentage={item.percentage}
+                              type="audience"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {likersInterests.length > 0 && (
+                    <div className={audienceInterests.length > 0 ? "col-12 col-md-6" : "col-12"}>
+                      <div className="pdv-interest-box">
+                        <div className="pdv-interest-cat-title">
+                          <i className="bi bi-heart-fill me-1" style={{ color: '#E11D48' }}></i>
+                          Likers Interests
+                        </div>
+                        <div className="d-flex flex-column gap-2 mt-2">
+                          {likersInterests.map((item, idx) => (
+                            <InterestBar
+                              key={item._id || idx}
+                              name={item.name}
+                              percentage={item.percentage}
+                              type="likers"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Empty state */}
-            {!hasValue(platformData.followers) && !platformData.profileUrl && (
+            {!hasValue(platformData.followers) && !platformData.profileUrl && !hasInterests && (
               <p className="mb-0 mt-3" style={{ color: '#9CA3AF', fontSize: '13px' }}>
                 No {activePlatform?.label} data has been added for this nominee yet.
               </p>

@@ -57,10 +57,9 @@ export default function NomineeProfile() {
   const { id } = useParams();
   const queryClient = useQueryClient();
   const { data: nominee, isLoading: nomineeLoading } = useNominee(id);
-  const { data: nomineeData, isLoading: dataLoading } = useNomineeData(id);
-
-  const [activeTab, setActiveTab] = useState('instagram');
+  const { data: nomineeData, isLoading: dataLoading } = useNomineeData(id);  const [activeTab, setActiveTab] = useState('instagram');
   const [formData, setFormData] = useState({});
+  const [interests, setInterests] = useState({ audience: [], likers: [] });
   const [profileImage, setProfileImage] = useState('');
   const [saving, setSaving] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -82,6 +81,14 @@ export default function NomineeProfile() {
       }
     }
     setFormData(next);
+    setInterests({
+      audience: Array.isArray(platform.interests?.audience)
+        ? platform.interests.audience.map((i) => ({ name: i.name || '', percentage: i.percentage ?? '' }))
+        : [],
+      likers: Array.isArray(platform.interests?.likers)
+        ? platform.interests.likers.map((i) => ({ name: i.name || '', percentage: i.percentage ?? '' }))
+        : [],
+    });
     setSavedMsg('');
   }, [nomineeData, activeTab]);
 
@@ -93,6 +100,28 @@ export default function NomineeProfile() {
 
   const handleFieldChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleAddInterest = (type) => {
+    setInterests((prev) => ({
+      ...prev,
+      [type]: [...prev[type], { name: '', percentage: '' }],
+    }));
+  };
+
+  const handleRemoveInterest = (type, index) => {
+    setInterests((prev) => ({
+      ...prev,
+      [type]: prev[type].filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleInterestChange = (type, index, field, value) => {
+    setInterests((prev) => {
+      const nextList = [...prev[type]];
+      nextList[index] = { ...nextList[index], [field]: value };
+      return { ...prev, [type]: nextList };
+    });
   };
 
   const handleProfileImageChange = async (e) => {
@@ -143,6 +172,22 @@ export default function NomineeProfile() {
           payload[field.key] = val;
         }
       }
+
+      // Dynamic Interests
+      payload.interests = {
+        audience: interests.audience
+          .filter((item) => item && item.name.trim() !== '')
+          .map((item) => ({
+            name: item.name.trim(),
+            percentage: Math.min(100, Math.max(0, Number(item.percentage) || 0)),
+          })),
+        likers: interests.likers
+          .filter((item) => item && item.name.trim() !== '')
+          .map((item) => ({
+            name: item.name.trim(),
+            percentage: Math.min(100, Math.max(0, Number(item.percentage) || 0)),
+          })),
+      };
 
       await upsertPlatformData(id, activeTab, payload);
       queryClient.invalidateQueries({ queryKey: ['nomineeData', id] });
@@ -323,6 +368,144 @@ export default function NomineeProfile() {
                     </div>
                   </div>
                 ))}
+
+                {/* Dynamic Interests Section */}
+                <div className="col-12 mt-4 pt-3 border-top">
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <div className="d-flex align-items-center gap-2">
+                      <i className="bi bi-pie-chart-fill" style={{ color: '#5006ba', fontSize: '18px' }}></i>
+                      <h6 className="cat-form-title mb-0" style={{ fontSize: '15px' }}>
+                        {activePlatform?.label} Interests & Demographics
+                      </h6>
+                    </div>
+                  </div>
+
+                  <div className="row g-4">
+                    {/* Audience Interests */}
+                    <div className="col-12 col-lg-6">
+                      <div className="p-3" style={{ background: '#FAF9FC', borderRadius: '12px', border: '1px solid #E9D5FF' }}>
+                        <div className="d-flex align-items-center justify-content-between mb-2">
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            <i className="bi bi-people-fill me-1" style={{ color: '#7C3AED' }}></i> Audience Interests
+                          </span>
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            onClick={() => handleAddInterest('audience')}
+                            style={{ fontSize: '12px', fontWeight: 600, color: '#5006ba', background: '#F3E8FF', borderRadius: '6px', border: 'none', padding: '4px 10px' }}
+                          >
+                            <i className="bi bi-plus-lg me-1"></i> Add Interest
+                          </button>
+                        </div>
+
+                        {interests.audience.length === 0 ? (
+                          <p className="text-muted mb-0 py-2" style={{ fontSize: '12px', fontStyle: 'italic' }}>
+                            No audience interests added for {activePlatform?.label}. Click "+ Add Interest" to add.
+                          </p>
+                        ) : (
+                          <div className="d-flex flex-column gap-2 mt-2">
+                            {interests.audience.map((item, idx) => (
+                              <div key={idx} className="d-flex align-items-center gap-2">
+                                <input
+                                  type="text"
+                                  className="cat-form-input"
+                                  placeholder="Interest (e.g. Fashion & Style)"
+                                  value={item.name}
+                                  onChange={(e) => handleInterestChange('audience', idx, 'name', e.target.value)}
+                                  style={{ flex: 2, padding: '6px 12px', fontSize: '13px' }}
+                                />
+                                <div style={{ position: 'relative', width: '90px', flexShrink: 0 }}>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    className="cat-form-input"
+                                    placeholder="%"
+                                    value={item.percentage}
+                                    onChange={(e) => handleInterestChange('audience', idx, 'percentage', e.target.value)}
+                                    style={{ padding: '6px 22px 6px 10px', fontSize: '13px', textAlign: 'right' }}
+                                  />
+                                  <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#9CA3AF', pointerEvents: 'none' }}>%</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => handleRemoveInterest('audience', idx)}
+                                  title="Remove"
+                                  style={{ width: '32px', height: '34px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}
+                                >
+                                  <i className="bi bi-x-lg" style={{ fontSize: '12px' }}></i>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Likers Interests */}
+                    <div className="col-12 col-lg-6">
+                      <div className="p-3" style={{ background: '#FAF9FC', borderRadius: '12px', border: '1px solid #E9D5FF' }}>
+                        <div className="d-flex align-items-center justify-content-between mb-2">
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            <i className="bi bi-heart-fill me-1" style={{ color: '#E11D48' }}></i> Likers Interests
+                          </span>
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            onClick={() => handleAddInterest('likers')}
+                            style={{ fontSize: '12px', fontWeight: 600, color: '#5006ba', background: '#F3E8FF', borderRadius: '6px', border: 'none', padding: '4px 10px' }}
+                          >
+                            <i className="bi bi-plus-lg me-1"></i> Add Interest
+                          </button>
+                        </div>
+
+                        {interests.likers.length === 0 ? (
+                          <p className="text-muted mb-0 py-2" style={{ fontSize: '12px', fontStyle: 'italic' }}>
+                            No likers interests added for {activePlatform?.label}. Click "+ Add Interest" to add.
+                          </p>
+                        ) : (
+                          <div className="d-flex flex-column gap-2 mt-2">
+                            {interests.likers.map((item, idx) => (
+                              <div key={idx} className="d-flex align-items-center gap-2">
+                                <input
+                                  type="text"
+                                  className="cat-form-input"
+                                  placeholder="Interest (e.g. Entertainment)"
+                                  value={item.name}
+                                  onChange={(e) => handleInterestChange('likers', idx, 'name', e.target.value)}
+                                  style={{ flex: 2, padding: '6px 12px', fontSize: '13px' }}
+                                />
+                                <div style={{ position: 'relative', width: '90px', flexShrink: 0 }}>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    className="cat-form-input"
+                                    placeholder="%"
+                                    value={item.percentage}
+                                    onChange={(e) => handleInterestChange('likers', idx, 'percentage', e.target.value)}
+                                    style={{ padding: '6px 22px 6px 10px', fontSize: '13px', textAlign: 'right' }}
+                                  />
+                                  <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#9CA3AF', pointerEvents: 'none' }}>%</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => handleRemoveInterest('likers', idx)}
+                                  title="Remove"
+                                  style={{ width: '32px', height: '34px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}
+                                >
+                                  <i className="bi bi-x-lg" style={{ fontSize: '12px' }}></i>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Save button + status */}
                 <div className="col-12">

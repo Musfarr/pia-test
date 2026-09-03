@@ -17,7 +17,7 @@ const THEME_GRADIENT = 'radial-gradient(circle at 60% 40%, #6510b4, #29055e)';
 function NomineeCard({ row, index }) {
   const nominee = row.nomineeId;
   const nomineeName = typeof nominee === 'object' ? nominee?.name : 'Unknown';
-  const initial = nomineeName.charAt(0).toUpperCase();
+  const initial = nomineeName?.charAt(0).toUpperCase();
   const isPodium = row.rank <= 3;
   const profileImage = typeof nominee === 'object' ? nominee?.profileImage : null;
 
@@ -50,7 +50,7 @@ function NomineeCard({ row, index }) {
           <img
             src={cardImage}
             alt={nomineeName}
-            style={{objectPosition:'top', width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            style={{ objectPosition: 'top', width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             onError={(e) => { e.target.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="#E8E8EC"/><text x="50%" y="50%" font-size="120" font-weight="bold" fill="#9CA3AF" text-anchor="middle" dy=".35em">${initial}</text></svg>`)}`; }}
           />
           {/* Gradient overlay at bottom for name legibility */}
@@ -61,7 +61,7 @@ function NomineeCard({ row, index }) {
             style={{
               position: 'absolute',
               top: 10, left: 10,
-              background:'rgb(31 30 31)' ,
+              background: 'rgb(31 30 31)',
               color: '#dbff00',
               fontSize: '13px',
               fontWeight: 700,
@@ -205,7 +205,7 @@ export default function Shortlist() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05 }}
       >
-          {/* border-radius: 5px;
+        {/* border-radius: 5px;
     padding: 12px 18px;
     font-size: 16px;
     font-weight: 600;

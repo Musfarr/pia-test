@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * A dropdown multi-select for picking categories.
@@ -30,59 +31,62 @@ export default function CategoryMultiSelect({ categories, selected, onToggle }) 
   }
 
   return (
-    <div className="position-relative" ref={ref}>
+    <div className="custom-select-wrap" ref={ref}>
       <button
         type="button"
-        className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2"
-        style={{ minWidth: '160px', justifyContent: 'space-between' }}
+        className={`custom-select-trigger custom-select-trigger--sm ${open ? 'is-open' : ''}`}
+        style={{ minWidth: '170px' }}
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="text-truncate">
+        <span className="text-truncate" style={{ fontSize: '12px' }}>
           {selectionLabel}
         </span>
-        <i className={`bi bi-chevron-${open ? 'up' : 'down'}`} style={{ fontSize: '12px' }}></i>
+        <i className={`bi bi-chevron-down custom-select-chevron ${open ? 'is-open' : ''}`} style={{ fontSize: '11px' }}></i>
       </button>
 
-      {open && (
-        <div
-          className="position-absolute bg-white border rounded shadow-sm"
-          style={{
-            top: '100%',
-            left: 0,
-            zIndex: 1050,
-            minWidth: '220px',
-            maxHeight: '240px',
-            overflowY: 'auto',
-            padding: '6px',
-            marginTop: '4px',
-          }}
-        >
-          {categories.length === 0 ? (
-            <div className="text-center py-3" style={{ color: '#9CA3AF', fontSize: '13px' }}>
-              No categories available
-            </div>
-          ) : (
-            categories.map((cat) => {
-              const checked = selectedSet.has(cat.name);
-              return (
-                <label
-                  key={cat._id}
-                  className="d-flex align-items-center gap-2 px-2 py-1 rounded"
-                  style={{ cursor: 'pointer', fontSize: '14px', backgroundColor: checked ? '#EEF4FF' : 'transparent' }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => onToggle(cat.name)}
-                    style={{ accentColor: '#5006ba' }}
-                  />
-                  <span className="text-truncate">{cat.name}</span>
-                </label>
-              );
-            })
-          )}
-        </div>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="custom-select-menu"
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            style={{
+              minWidth: '220px',
+              maxHeight: '240px',
+              textAlign: 'left',
+            }}
+          >
+            {categories.length === 0 ? (
+              <div className="custom-select-empty">
+                No categories available
+              </div>
+            ) : (
+              categories.map((cat) => {
+                const checked = selectedSet.has(cat.name);
+                return (
+                  <label
+                    key={cat._id}
+                    className={`custom-select-option custom-select-option--sm ${checked ? 'is-selected' : ''}`}
+                    style={{ cursor: 'pointer', marginBottom: '1px' }}
+                  >
+                    <div className="d-flex align-items-center gap-2 text-truncate">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => onToggle(cat.name)}
+                        style={{ accentColor: '#5006ba', cursor: 'pointer' }}
+                      />
+                      <span className="text-truncate" style={{ fontSize: '12.5px' }}>{cat.name}</span>
+                    </div>
+                  </label>
+                );
+              })
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

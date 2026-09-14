@@ -3,11 +3,20 @@ import { Link } from 'react-router-dom';
 import { juryTypes } from '../data/dashboardData';
 import { useCategories } from '../hooks/useQueries';
 import CategoryMultiSelect from './CategoryMultiSelect';
+import CustomSelect from './CustomSelect';
+import TablePagination from './TablePagination';
 
 export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllHref, isLoading }) {
   const { data: categories = [] } = useCategories();
   const [searchInput, setSearchInput] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const typeOptions = useMemo(() => [
+    { value: '', label: 'Type: All' },
+    ...juryTypes.map((type) => ({ value: type, label: type })),
+  ], []);
 
   const filteredJuries = useMemo(() => {
     const search = searchInput.trim().toLowerCase();
@@ -18,9 +27,25 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
     });
   }, [juries, searchInput, typeFilter]);
 
+  const paginatedJuries = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredJuries.slice(start, start + pageSize);
+  }, [filteredJuries, page, pageSize]);
+
   const clearFilters = () => {
     setSearchInput('');
     setTypeFilter('');
+    setPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchInput(e.target.value);
+    setPage(1);
+  };
+
+  const handleTypeChange = (val) => {
+    setTypeFilter(val);
+    setPage(1);
   };
 
   return (
@@ -38,19 +63,17 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
               type="text"
               placeholder="Search by name, username…"
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
-          <select
-            className="date-filter-select"
+          <CustomSelect
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
-            <option value="">Type: All</option>
-            {juryTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
+            onChange={handleTypeChange}
+            options={typeOptions}
+            placeholder="Type: All"
+            searchable={false}
+            triggerStyle={{ minWidth: '120px' }}
+          />
           <button className="clt-reset-btn" onClick={clearFilters}>
             <i className="bi bi-x-circle"></i> Reset
           </button>
@@ -90,7 +113,7 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
                   </td>
                 </tr>
               ) : (
-                filteredJuries.map((item) => (
+                paginatedJuries.map((item) => (
                   <tr key={item._id} className="clt-row">
                     <td className="ps-4 py-3">
                       <div className="d-flex align-items-center gap-3">
@@ -142,6 +165,16 @@ export default function JuryTable({ juries, onDelete, onAssignCategory, viewAllH
           </table>
         </div>
       </div>
+
+      {!isLoading && filteredJuries.length > 0 && (
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={filteredJuries.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

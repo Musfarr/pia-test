@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCategories, useNominees } from '../hooks/useQueries';
 import { createNominee, deleteNominee } from '../util/api';
+import CustomSelect from '../components/CustomSelect';
+import TablePagination from '../components/TablePagination';
 
 export default function Nominees() {
   const queryClient = useQueryClient();
@@ -15,6 +17,13 @@ export default function Nominees() {
   const [submitting, setSubmitting] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const categoryFilterOptions = useMemo(() => [
+    { value: '', label: 'Category: All' },
+    ...categories.map((cat) => ({ value: cat._id, label: cat.name })),
+  ], [categories]);
 
   const filteredNominees = useMemo(() => {
     const search = searchInput.trim().toLowerCase();
@@ -25,9 +34,25 @@ export default function Nominees() {
     });
   }, [nominees, searchInput, categoryFilter]);
 
+  const paginatedNominees = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredNominees.slice(start, start + pageSize);
+  }, [filteredNominees, page, pageSize]);
+
   const clearFilters = () => {
     setSearchInput('');
     setCategoryFilter('');
+    setPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchInput(e.target.value);
+    setPage(1);
+  };
+
+  const handleCategoryFilterChange = (val) => {
+    setCategoryFilter(val);
+    setPage(1);
   };
 
   const handleSubmit = async (e) => {
@@ -134,19 +159,16 @@ export default function Nominees() {
                   type="text"
                   placeholder="Search nominee…"
                   value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
+                  onChange={handleSearchChange}
                 />
               </div>
-              <select
-                className="date-filter-select"
+              <CustomSelect
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-              >
-                <option value="">Category: All</option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>{cat.name}</option>
-                ))}
-              </select>
+                onChange={handleCategoryFilterChange}
+                options={categoryFilterOptions}
+                placeholder="Category: All"
+                triggerStyle={{ minWidth: '180px' }}
+              />
               <button className="clt-reset-btn" onClick={clearFilters}>
                 <i className="bi bi-x-circle"></i> Reset
               </button>
@@ -181,7 +203,7 @@ export default function Nominees() {
                       </td>
                     </tr>
                   ) : (
-                    filteredNominees.map((item) => (
+                    paginatedNominees.map((item) => (
                       <tr key={item._id} className="clt-row">
                         <td className="ps-4 py-3">
                           <div className="d-flex align-items-center gap-3">
@@ -226,6 +248,16 @@ export default function Nominees() {
               </table>
             </div>
           </div>
+
+          {!isLoading && filteredNominees.length > 0 && (
+            <TablePagination
+              page={page}
+              pageSize={pageSize}
+              totalItems={filteredNominees.length}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          )}
         </div>
       </motion.div>
 

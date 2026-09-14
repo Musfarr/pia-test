@@ -1,7 +1,10 @@
 import React, { useMemo, useState } from 'react';
+import TablePagination from './TablePagination';
 
 export default function CategoryTable({ categories, onDelete, isLoading }) {
   const [searchInput, setSearchInput] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const filteredCategories = useMemo(() => {
     const search = searchInput.trim().toLowerCase();
@@ -11,8 +14,19 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
     });
   }, [categories, searchInput]);
 
+  const paginatedCategories = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredCategories.slice(start, start + pageSize);
+  }, [filteredCategories, page, pageSize]);
+
   const clearFilters = () => {
     setSearchInput('');
+    setPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchInput(e.target.value);
+    setPage(1);
   };
 
   return (
@@ -30,7 +44,7 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
               type="text"
               placeholder="Search category…"
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
           <button className="clt-reset-btn" onClick={clearFilters}>
@@ -66,7 +80,7 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
                   </td>
                 </tr>
               ) : (
-                filteredCategories.map((item) => (
+                paginatedCategories.map((item) => (
                   <tr key={item._id} className="clt-row">
                     <td className="ps-4 py-3">
                       <div className="d-flex align-items-center gap-3">
@@ -96,6 +110,16 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
           </table>
         </div>
       </div>
+
+      {!isLoading && filteredCategories.length > 0 && (
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={filteredCategories.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

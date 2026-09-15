@@ -12,7 +12,7 @@ export default function Dashboard({ onLogout }) {
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 991.98px)');
+    const mediaQuery = window.matchMedia('(max-width: 1100.98px)');
 
     const handleViewportChange = (event) => {
       setIsMobileViewport(event.matches);
@@ -60,34 +60,34 @@ export default function Dashboard({ onLogout }) {
 
   return (
     <DateRangeProvider>
-    <div className="dashboard-wrapper">
-      <Sidebar
-        isCollapsed={isSidebarCollapsed}
-        isMobileOpen={isMobileSidebarOpen}
-        onToggle={toggleSidebar}
-        onMobileClose={closeMobileSidebar}
-        onLogout={onLogout}
-      />
+      <div className="dashboard-wrapper">
+        <Sidebar
+          isCollapsed={isSidebarCollapsed}
+          isMobileOpen={isMobileSidebarOpen}
+          onToggle={toggleSidebar}
+          onMobileClose={closeMobileSidebar}
+          onLogout={onLogout}
+        />
 
-      <div className={`dashboard-main ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <DashboardHeader onLogout={onLogout} onMobileMenuClick={toggleSidebar} />
+        <div className={`dashboard-main ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+          <DashboardHeader onLogout={onLogout} onMobileMenuClick={toggleSidebar} />
 
-        <div className="dashboard-content">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+          <div className="dashboard-content">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
         </div>
-
       </div>
-    </div>
     </DateRangeProvider>
   );
 }

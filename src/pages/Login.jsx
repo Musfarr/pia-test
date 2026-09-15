@@ -69,11 +69,11 @@ export default function Login() {
         <div className="login-left-content">
           <h1 className="login-title">
             SHAPING DIGITAL<br />
-             <span className="login-title-accent">CULTURE</span>
+            <span className="login-title-accent">CULTURE</span>
           </h1>
           <p className="login-tagline">
             Pakistan Influencer Awards recognizes creators, storytellers, and
-communities who inspire, entertain, and drive impact
+            communities who inspire, entertain, and drive impact
 
           </p>
           {/* <div className="login-features">
@@ -164,7 +164,7 @@ communities who inspire, entertain, and drive impact
                 <span className="login-checkbox-box" />
                 <span>Remember me</span>
               </label>
-              <a href="#" className="login-forgot-link">Forgot password?</a>
+              {/* <a href="#" className="login-forgot-link">Forgot password?</a> */}
             </div>
 
             {/* Sign in */}

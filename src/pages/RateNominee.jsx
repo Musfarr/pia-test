@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNominee, useMyScore, useSettings } from '../hooks/useQueries';
+import { useNominee, useNomineeData, useMyScore, useSettings } from '../hooks/useQueries';
 import { useAuth } from '../context/AuthProvider';
 import { normalizeRole } from '../util/roles';
 import { saveJuryScore } from '../util/api';
@@ -28,9 +28,26 @@ export default function RateNominee() {
   const { user } = useAuth();
   const role = normalizeRole(user?.role);
   const { data: nominee, isLoading: nomineeLoading } = useNominee(id);
+  const { data: nomineeData } = useNomineeData(id);
   const { data: existingScore, isLoading: scoreLoading } = useMyScore(id);
   const { data: settings } = useSettings();
   const [activePlatform, setActivePlatform] = useState('instagram');
+
+  // Only render buttons for platforms that have a profileUrl in nomineeData
+  const availablePlatforms = useMemo(() => {
+    if (!nomineeData) return [];
+    return SOCIAL_BUTTONS.filter((p) => {
+      const url = nomineeData[p.key]?.profileUrl;
+      return typeof url === 'string' && url.trim().length > 0;
+    });
+  }, [nomineeData]);
+
+  // If the activePlatform doesn't have a profileUrl, switch to the first available platform
+  useEffect(() => {
+    if (availablePlatforms.length > 0 && !availablePlatforms.some((p) => p.key === activePlatform)) {
+      setActivePlatform(availablePlatforms[0].key);
+    }
+  }, [availablePlatforms, activePlatform]);
 
   const requiredStage = REQUIRED_STAGE[role];
   const currentStage = settings?.currentStage || 'setup';
@@ -172,20 +189,26 @@ export default function RateNominee() {
                   </span>
                 )}
               </p>
-              {/* Social platform buttons — expand on hover, active = pressed in */}
+              {/* Social platform buttons — disabled and greyed out if no profileUrl */}
               <div className="social-links">
-                {SOCIAL_BUTTONS.map((p) => (
-                  <button
-                    key={p.key}
-                    type="button"
-                    className={`social-btn social-btn--${p.key} ${activePlatform === p.key ? 'social-btn--active' : ''}`}
-                    onClick={() => setActivePlatform(p.key)}
-                    title={p.label}
-                  >
-                    <i className={`bi ${p.icon}`}></i>
-                    <span>{p.label}</span>
-                  </button>
-                ))}
+                {SOCIAL_BUTTONS.map((p) => {
+                  const hasProfileUrl = Boolean(nomineeData?.[p.key]?.profileUrl?.trim());
+                  const isActive = hasProfileUrl && activePlatform === p.key;
+
+                  return (
+                    <button
+                      key={p.key}
+                      type="button"
+                      disabled={!hasProfileUrl}
+                      className={`social-btn social-btn--${p.key} ${isActive ? 'social-btn--active' : ''} ${!hasProfileUrl ? 'social-btn--disabled' : ''}`}
+                      onClick={() => hasProfileUrl && setActivePlatform(p.key)}
+                      title={hasProfileUrl ? p.label : `${p.label} (Not available)`}
+                    >
+                      <i className={`bi ${p.icon}`}></i>
+                      <span>{p.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

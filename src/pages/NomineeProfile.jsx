@@ -57,10 +57,15 @@ export default function NomineeProfile() {
   const { id } = useParams();
   const queryClient = useQueryClient();
   const { data: nominee, isLoading: nomineeLoading } = useNominee(id);
-  const { data: nomineeData, isLoading: dataLoading } = useNomineeData(id);  const [activeTab, setActiveTab] = useState('instagram');
+  const { data: nomineeData, isLoading: dataLoading } = useNomineeData(id);
+  const [activeTab, setActiveTab] = useState('instagram');
   const [formData, setFormData] = useState({});
   const [interests, setInterests] = useState({ audience: [], likers: [] });
   const [profileImage, setProfileImage] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [nameSavedMsg, setNameSavedMsg] = useState('');
   const [saving, setSaving] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
@@ -92,10 +97,11 @@ export default function NomineeProfile() {
     setSavedMsg('');
   }, [nomineeData, activeTab]);
 
-  // Sync profile image from nominee record
+  // Sync profile image and name from nominee record
   useEffect(() => {
     if (!nominee) return;
     setProfileImage(nominee.profileImage || '');
+    setEditedName(nominee.name || '');
   }, [nominee]);
 
   const handleFieldChange = (key, value) => {
@@ -152,6 +158,35 @@ export default function NomineeProfile() {
       alert(err.response?.data?.message || 'Failed to save profile image');
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+  const handleSaveNomineeName = async (e) => {
+    if (e) e.preventDefault();
+    const trimmed = editedName.trim();
+    if (!trimmed) {
+      alert('Nominee name cannot be empty');
+      return;
+    }
+    if (trimmed === nominee?.name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    setSavingName(true);
+    setNameSavedMsg('');
+    try {
+      await updateNominee(id, { name: trimmed });
+      queryClient.invalidateQueries({ queryKey: ['nominee', id] });
+      queryClient.invalidateQueries({ queryKey: ['nominees'] });
+      queryClient.invalidateQueries({ queryKey: ['shortlists'] });
+      setIsEditingName(false);
+      setNameSavedMsg('Name updated');
+      setTimeout(() => setNameSavedMsg(''), 2500);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update nominee name');
+    } finally {
+      setSavingName(false);
     }
   };
 
@@ -278,11 +313,98 @@ export default function NomineeProfile() {
           </div>
 
           {/* Name + category + season */}
-          <div style={{ flex: 1, minWidth: '180px' }}>
-            <h6 className="cat-form-title mb-1">{nominee?.name || 'Nominee'}</h6>
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            {isEditingName ? (
+              <form onSubmit={handleSaveNomineeName} className="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <input
+                  type="text"
+                  className="cat-form-input"
+                  style={{
+                    height: '36px',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    maxWidth: '300px',
+                    padding: '0 12px',
+                    borderRadius: '8px',
+                  }}
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  placeholder="Nominee name"
+                  autoFocus
+                  required
+                  disabled={savingName}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setIsEditingName(false);
+                      setEditedName(nominee?.name || '');
+                    }
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="cat-form-submit"
+                  disabled={savingName || !editedName.trim()}
+                  style={{ height: '36px', padding: '0 14px', fontSize: '13px', borderRadius: '8px' }}
+                  title="Save name"
+                >
+                  {savingName ? (
+                    <span className="spinner-border spinner-border-sm" role="status"></span>
+                  ) : (
+                    <>
+                      <i className="bi bi-check-lg"></i> Save
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="clt-reset-btn"
+                  onClick={() => {
+                    setIsEditingName(false);
+                    setEditedName(nominee?.name || '');
+                  }}
+                  disabled={savingName}
+                  style={{ height: '36px', padding: '0 10px', fontSize: '13px' }}
+                  title="Cancel"
+                >
+                  <i className="bi bi-x-lg"></i>
+                </button>
+              </form>
+            ) : (
+              <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                <h6 className="cat-form-title mb-0" style={{ fontSize: '20px' }}>
+                  {nominee?.name || 'Nominee'}
+                </h6>
+                <button
+                  type="button"
+                  className="clt-action-btn"
+                  onClick={() => {
+                    setIsEditingName(true);
+                    setEditedName(nominee?.name || '');
+                  }}
+                  title="Edit nominee name"
+                  style={{ width: '30px', height: '30px', fontSize: '12px' }}
+                >
+                  <i className="bi bi-pencil"></i>
+                </button>
+                {nameSavedMsg && (
+                  <span style={{ color: '#059669', fontSize: '12px', fontWeight: 600 }}>
+                    <i className="bi bi-check-circle-fill me-1"></i> {nameSavedMsg}
+                  </span>
+                )}
+              </div>
+            )}
+
             <p className="cat-form-subtitle mb-0">
-              {nominee?.categoryId?.name && <span className="clt-badge me-2" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>{nominee.categoryId.name}</span>}
-              {nominee?.season && <span className="clt-badge" style={{ backgroundColor: '#D1FAE5', color: '#059669' }}>{nominee.season}</span>}
+              {nominee?.categoryId?.name && (
+                <span className="clt-badge me-2" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>
+                  {nominee.categoryId.name}
+                </span>
+              )}
+              {nominee?.season && (
+                <span className="clt-badge" style={{ backgroundColor: '#D1FAE5', color: '#059669' }}>
+                  {nominee.season}
+                </span>
+              )}
             </p>
           </div>
 

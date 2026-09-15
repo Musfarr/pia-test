@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthProvider';
 import { useCategories, useCategoryAdmins, useCreateCategoryAdmin, useDeleteCategoryAdmin } from '../hooks/useQueries';
-import { createCategory, deleteCategory } from '../util/api';
+import { createCategory, deleteCategory, updateCategory } from '../util/api';
 import CategoryTable from '../components/CategoryTable';
 
 export default function Categories() {
@@ -48,6 +48,16 @@ export default function Categories() {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete category');
+    }
+  };
+
+  const handleUpdate = async (id, data) => {
+    try {
+      await updateCategory(id, data);
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update category');
+      throw err;
     }
   };
 
@@ -303,7 +313,7 @@ export default function Categories() {
         transition={{ duration: 0.4, delay: 0.15, ease: [0.23, 1, 0.32, 1] }}
         className='mt-8 pt-8'
       >
-        <CategoryTable categories={categories} onDelete={handleDelete} isLoading={isLoading} />
+        <CategoryTable categories={categories} onDelete={handleDelete} onUpdate={handleUpdate} isLoading={isLoading} />
       </motion.div>
 
     </div>

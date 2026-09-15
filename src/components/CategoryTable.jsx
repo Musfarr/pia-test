@@ -1,10 +1,20 @@
 import React, { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
+import { updateCategory } from '../util/api';
 import TablePagination from './TablePagination';
 
-export default function CategoryTable({ categories, onDelete, isLoading }) {
+export default function CategoryTable({ categories, onDelete, onUpdate, isLoading }) {
+  const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // Edit state
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [editError, setEditError] = useState(null);
 
   const filteredCategories = useMemo(() => {
     const search = searchInput.trim().toLowerCase();
@@ -27,6 +37,49 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
     setPage(1);
+  };
+
+  const handleStartEdit = (category) => {
+    setEditingCategory(category);
+    setEditName(category.name);
+    setEditError(null);
+  };
+
+  const handleCloseEdit = () => {
+    if (isSaving) return;
+    setEditingCategory(null);
+    setEditName('');
+    setEditError(null);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      setEditError('Category name is required');
+      return;
+    }
+
+    if (trimmed === editingCategory.name) {
+      handleCloseEdit();
+      return;
+    }
+
+    setIsSaving(true);
+    setEditError(null);
+    try {
+      if (onUpdate) {
+        await onUpdate(editingCategory._id, { name: trimmed });
+      } else {
+        await updateCategory(editingCategory._id, { name: trimmed });
+        queryClient.invalidateQueries({ queryKey: ['categories'] });
+      }
+      handleCloseEdit();
+    } catch (err) {
+      setEditError(err.response?.data?.message || 'Failed to update category');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -96,6 +149,13 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
                       <div className="d-flex gap-2 justify-content-center">
                         <button
                           className="clt-action-btn"
+                          onClick={() => handleStartEdit(item)}
+                          title="Edit category"
+                        >
+                          <i className="bi bi-pencil"></i>
+                        </button>
+                        <button
+                          className="clt-action-btn"
                           onClick={() => onDelete(item._id)}
                           title="Delete category"
                         >
@@ -120,6 +180,113 @@ export default function CategoryTable({ categories, onDelete, isLoading }) {
           onPageSizeChange={setPageSize}
         />
       )}
+
+      {/* Edit Category Modal */}
+      <AnimatePresence>
+        {editingCategory && (
+          <motion.div
+            className="cat-modal-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(17, 24, 39, 0.5)',
+              backdropFilter: 'blur(2px)',
+              WebkitBackdropFilter: 'blur(2px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1050,
+              padding: '1rem',
+            }}
+            onClick={handleCloseEdit}
+          >
+            <motion.div
+              className="card cat-form-card"
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 16 }}
+              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+              style={{ width: '100%', maxWidth: '480px', overflow: 'hidden' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="d-flex align-items-center justify-content-between mb-2">
+                <h6 className="cat-form-title mb-0">Edit Category</h6>
+                <button
+                  type="button"
+                  className="clt-action-btn"
+                  onClick={handleCloseEdit}
+                  title="Close"
+                  disabled={isSaving}
+                  style={{ width: '32px', height: '32px' }}
+                >
+                  <i className="bi bi-x-lg"></i>
+                </button>
+              </div>
+              <p className="cat-form-subtitle mb-3">
+                Update the award category name for <strong>Season {editingCategory.season}</strong>
+              </p>
+
+              {editError && (
+                <div className="alert alert-danger py-2 px-3 mb-3" style={{ fontSize: '13px', borderRadius: '8px' }}>
+                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                  {editError}
+                </div>
+              )}
+
+              <form onSubmit={handleSaveEdit}>
+                <div className="cat-form-field mb-4">
+                  <label className="cat-form-label" htmlFor="edit-category-name">
+                    Category Name
+                  </label>
+                  <input
+                    id="edit-category-name"
+                    className="cat-form-input"
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Enter category name"
+                    autoFocus
+                    required
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className="d-flex justify-content-end gap-2">
+                  <button
+                    type="button"
+                    className="clt-reset-btn"
+                    onClick={handleCloseEdit}
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="cat-form-submit"
+                    disabled={isSaving || !editName.trim()}
+                    style={{ minWidth: '120px' }}
+                  >
+                    {isSaving ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check2 me-1"></i> Save Changes
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

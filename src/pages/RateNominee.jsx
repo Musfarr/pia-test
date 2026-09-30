@@ -160,74 +160,74 @@ export default function RateNominee() {
       <div className='row g-4'>
 
 
-      <div  className='col-12 col-lg-8'>
-      {/* Header */}
-      <motion.div
-        className="card cat-form-card mb-4  "
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-      >
-        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div className="d-flex align-items-center gap-3">
-            {/* <Link to=".." relative="path" className="clt-action-btn" title="Back">
+        <div className='col-12 col-lg-8'>
+          {/* Header */}
+          <motion.div
+            className="card cat-form-card mb-4  "
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div className="d-flex align-items-center gap-3">
+                {/* <Link to=".." relative="path" className="clt-action-btn" title="Back">
               <i className="bi bi-arrow-left"></i>
             </Link> */}
-            <div className="clt-avatar" style={{ width: '126px', height: '126px', borderRadius: '12px', fontSize: '20px' }}>
-              {nominee?.profileImage ? (
-                <img src={nominee.profileImage} alt={nominee?.name || 'Nominee'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                nominee?.name?.charAt(0).toUpperCase() || '?'
+                <div className="clt-avatar" style={{ width: '126px', height: '126px', borderRadius: '12px', fontSize: '20px' }}>
+                  {nominee?.profileImage ? (
+                    <img src={nominee.profileImage} alt={nominee?.name || 'Nominee'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    nominee?.name?.charAt(0).toUpperCase() || '?'
+                  )}
+                </div>
+                <div>
+                  <h6 className="cat-form-title mb-1">{nominee?.name || 'Nominee'}</h6>
+                  <p className="cat-form-subtitle mb-2">
+                    {nominee?.categoryId?.name && (
+                      <span className="clt-badge me-2" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>
+                        {nominee.categoryId.name}
+                      </span>
+                    )}
+                  </p>
+                  {/* Social platform buttons — disabled and greyed out if no profileUrl */}
+                  <div className="social-links">
+                    {SOCIAL_BUTTONS.map((p) => {
+                      const hasProfileUrl = Boolean(nomineeData?.[p.key]?.profileUrl?.trim());
+                      const isActive = hasProfileUrl && activePlatform === p.key;
+
+                      return (
+                        <button
+                          key={p.key}
+                          type="button"
+                          disabled={!hasProfileUrl}
+                          className={`social-btn social-btn--${p.key} ${isActive ? 'social-btn--active' : ''} ${!hasProfileUrl ? 'social-btn--disabled' : ''}`}
+                          onClick={() => hasProfileUrl && setActivePlatform(p.key)}
+                          title={hasProfileUrl ? p.label : `${p.label} (Not available)`}
+                        >
+                          <i className={`bi ${p.icon}`}></i>
+                          <span>{p.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              {existingScore?.submittedAt && (
+                <span className="clt-badge" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+                  <i className="bi bi-check-circle me-1"></i>
+                  Submitted {new Date(existingScore.submittedAt).toLocaleDateString()}
+                </span>
               )}
             </div>
-            <div>
-              <h6 className="cat-form-title mb-1">{nominee?.name || 'Nominee'}</h6>
-              <p className="cat-form-subtitle mb-2">
-                {nominee?.categoryId?.name && (
-                  <span className="clt-badge me-2" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>
-                    {nominee.categoryId.name}
-                  </span>
-                )}
-              </p>
-              {/* Social platform buttons — disabled and greyed out if no profileUrl */}
-              <div className="social-links">
-                {SOCIAL_BUTTONS.map((p) => {
-                  const hasProfileUrl = Boolean(nomineeData?.[p.key]?.profileUrl?.trim());
-                  const isActive = hasProfileUrl && activePlatform === p.key;
+          </motion.div>
 
-                  return (
-                    <button
-                      key={p.key}
-                      type="button"
-                      disabled={!hasProfileUrl}
-                      className={`social-btn social-btn--${p.key} ${isActive ? 'social-btn--active' : ''} ${!hasProfileUrl ? 'social-btn--disabled' : ''}`}
-                      onClick={() => hasProfileUrl && setActivePlatform(p.key)}
-                      title={hasProfileUrl ? p.label : `${p.label} (Not available)`}
-                    >
-                      <i className={`bi ${p.icon}`}></i>
-                      <span>{p.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="">
+            <PlatformDataView nomineeId={id} activeTab={activePlatform} onTabChange={setActivePlatform} />
           </div>
-          {existingScore?.submittedAt && (
-            <span className="clt-badge" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-              <i className="bi bi-check-circle me-1"></i>
-              Submitted {new Date(existingScore.submittedAt).toLocaleDateString()}
-            </span>
-          )}
-        </div>
-      </motion.div>
 
-        <div className="">
-          <PlatformDataView nomineeId={id} activeTab={activePlatform} onTabChange={setActivePlatform} />
         </div>
 
-      </div>
-
-      <div className="col-12 col-lg-4 sticky">
+        <div className="col-12 col-lg-4 sticky">
           <motion.div
             className="rubric-card"
             initial={{ opacity: 0, y: 18 }}

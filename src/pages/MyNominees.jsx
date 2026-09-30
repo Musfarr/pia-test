@@ -9,7 +9,6 @@ export default function MyNominees() {
   const { data: nominees = [], isLoading } = useMyNominees();
   const { data: settings } = useSettings();
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
   const scoringOpen = settings?.currentStage === 'creator_rating';
@@ -27,21 +26,19 @@ export default function MyNominees() {
     return Array.from(map.values());
   }, [nominees]);
 
+  const pendingNominees = useMemo(() => nominees.filter((n) => !n.myScore), [nominees]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return nominees.filter((n) => {
+    return pendingNominees.filter((n) => {
       const matchesSearch = !q || n.name.toLowerCase().includes(q);
-      const matchesStatus =
-        !statusFilter ||
-        (statusFilter === 'submitted' && n.myScore) ||
-        (statusFilter === 'pending' && !n.myScore);
       const catId = n.categoryId?._id || n.categoryId;
       const matchesCategory = !categoryFilter || catId === categoryFilter;
-      return matchesSearch && matchesStatus && matchesCategory;
+      return matchesSearch && matchesCategory;
     });
-  }, [nominees, search, statusFilter, categoryFilter]);
+  }, [pendingNominees, search, categoryFilter]);
 
-  const submittedCount = nominees.filter((n) => n.myScore).length;
+  const pendingCount = pendingNominees.length;
 
   return (
     <div className="container-fluid px-3">
@@ -80,7 +77,7 @@ export default function MyNominees() {
             <div>
               <h6 className="clt-title">My Nominees</h6>
               <p className="clt-subtitle">
-                Nominees assigned to you for Creator Jury scoring · {submittedCount}/{nominees.length} scored
+                Nominees assigned to you for Creator Jury scoring · {pendingCount} pending
               </p>
             </div>
             <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -104,15 +101,6 @@ export default function MyNominees() {
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
-              <select
-                className="date-filter-select"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="">Status: All</option>
-                <option value="submitted">Submitted</option>
-                <option value="pending">Pending</option>
-              </select>
             </div>
           </div>
 
@@ -124,7 +112,6 @@ export default function MyNominees() {
                     <th className="clt-th ps-4">Nominee</th>
                     <th className="clt-th text-center">Category</th>
                     <th className="clt-th text-center">Season</th>
-                    <th className="clt-th text-center">My Score</th>
                     <th className="clt-th text-center">Status</th>
                     <th className="clt-th text-center pe-4">Actions</th>
                   </tr>
@@ -132,17 +119,19 @@ export default function MyNominees() {
                 <tbody className="border-top-0">
                   {isLoading ? (
                     <tr>
-                      <td colSpan="6" className="text-center py-5">
+                      <td colSpan="5" className="text-center py-5">
                         <div className="spinner-border text-primary" role="status"></div>
                         <p className="mb-0 mt-2" style={{ color: '#9CA3AF', fontSize: '14px' }}>Loading your nominees…</p>
                       </td>
                     </tr>
                   ) : !filtered.length ? (
                     <tr>
-                      <td colSpan="6" className="text-center py-5">
+                      <td colSpan="5" className="text-center py-5">
                         <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#D1D5DB', display: 'block', marginBottom: '8px' }}></i>
                         <p className="mb-0" style={{ color: '#9CA3AF', fontSize: '14px' }}>
-                          {nominees.length ? 'No nominees match your filters' : 'No nominees assigned to you yet'}
+                          {nominees.length
+                            ? (pendingCount ? 'No pending nominees match your filters' : 'All assigned nominees have been scored')
+                            : 'No nominees assigned to you yet'}
                         </p>
                       </td>
                     </tr>
@@ -172,23 +161,10 @@ export default function MyNominees() {
                             {item.season}
                           </span>
                         </td>
-                        <td className="text-center clt-cell">
-                          {item.myScore ? (
-                            <span style={{ fontWeight: 700, color: '#5006ba' }}>
-                              {Math.round(item.myScore.avgScore ?? 0)}<span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 400 }}>/100</span>
-                            </span>
-                          ) : '—'}
-                        </td>
                         <td className="text-center">
-                          {item.myScore ? (
-                            <span className="clt-badge" style={{ backgroundColor: '#D1FAE5', color: '#059669' }}>
-                              <i className="bi bi-check-circle me-1"></i>Submitted
-                            </span>
-                          ) : (
-                            <span className="clt-badge" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-                              <i className="bi bi-clock me-1"></i>Pending
-                            </span>
-                          )}
+                          <span className="clt-badge" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+                            <i className="bi bi-clock me-1"></i>Pending
+                          </span>
                         </td>
                         <td className="pe-4 text-center">
                           <i className="bi bi-chevron-right" style={{ fontSize: '14px', color: '#9CA3AF' }}></i>

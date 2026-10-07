@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {API_BASE_URL , AGENT_BASE_URL}  from '../services/constants';
+import { API_BASE_URL, AGENT_BASE_URL } from '../services/constants';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,7 +9,7 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers['x-auth-token'] = token;
-    
+
   }
   config.headers['ngrok-skip-browser-warning'] = 'true';
   return config;
@@ -197,6 +197,8 @@ export const getAuditLogs = async (params = {}) => {
   const response = await api.get('/audit-logs', { params });
   return response.data;
 };
+
+
 
 export { API_BASE_URL, AGENT_BASE_URL };
 export default api;

@@ -1,5 +1,5 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { getCategories, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage, getShortlists, getDashboardStats, getAuditLogs } from '../util/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getCategories, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage, getShortlists, getWithdrawnFinalists, updateFinalistConsent, getDashboardStats, getAuditLogs } from '../util/api';
 
 export const useCategories = () => {
   return useQuery({
@@ -97,6 +97,26 @@ export const useShortlists = (stage) => {
   return useQuery({
     queryKey: ['shortlists', stage || 'all'],
     queryFn: () => getShortlists(stage),
+  });
+};
+
+export const useWithdrawnFinalists = (enabled = true) => {
+  return useQuery({
+    queryKey: ['shortlists', 'withdrawn'],
+    queryFn: getWithdrawnFinalists,
+    enabled,
+  });
+};
+
+// Declining consent reruns the Top 5 on the server, so refresh every shortlist view
+export const useUpdateFinalistConsent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateFinalistConsent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shortlists'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
   });
 };
 

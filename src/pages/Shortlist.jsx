@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useShortlists, useSettings } from '../hooks/useQueries';
+import { useShortlists, useSettings, useWithdrawnFinalists, useUpdateFinalistConsent } from '../hooks/useQueries';
 
 // Stage filter chips shown above the table
 const STAGE_FILTERS = [
@@ -13,8 +13,51 @@ const STAGE_FILTERS = [
 // Defined once here so cards stay on-theme.
 const THEME_GRADIENT = 'radial-gradient(circle at 60% 40%, #6510b4, #29055e)';
 
+// Top 5 finalist consent options (null = pending)
+const CONSENT_OPTIONS = [
+  { value: null, label: 'Pending', color: '#6B7280' },
+  { value: true, label: 'Consented', color: '#15803D' },
+  { value: false, label: 'Declined', color: '#B91C1C' },
+];
+
+// ── Consent control — segmented Pending / Consented / Declined ──
+function ConsentControl({ consent, disabled, onChange, loadingValue }) {
+  const current = consent ?? null;
+  return (
+    <div style={{ padding: '0 14px 12px', display: 'flex', gap: '4px' }}>
+      {CONSENT_OPTIONS.map((opt) => {
+        const active = current === opt.value;
+        return (
+          <button
+            key={opt.label}
+            type="button"
+            disabled={disabled || active}
+            onClick={() => onChange(opt.value)}
+            className="btn btn-sm"
+            style={{
+              flex: 1,
+              fontSize: '10px',
+              fontWeight: 600,
+              padding: '4px 2px',
+              borderRadius: '4px',
+              border: `1px solid ${active ? opt.color : '#E5E7EB'}`,
+              background: active ? `${opt.color}15` : '#fff',
+              color: active ? opt.color : '#9CA3AF',
+              opacity: 1,
+            }}
+          >
+            {loadingValue === opt.value
+              ? <output className="spinner-border spinner-border-sm" style={{ width: '10px', height: '10px', borderWidth: '2px' }}></output>
+              : opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Nominee card — image-dominant with hover stats ──
-function NomineeCard({ row, index }) {
+function NomineeCard({ row, index, consentControl }) {
   const nominee = row.nomineeId;
   const nomineeName = typeof nominee === 'object' ? nominee?.name : 'Unknown';
   const initial = nomineeName?.charAt(0).toUpperCase();
@@ -127,6 +170,8 @@ function NomineeCard({ row, index }) {
           </div>
         </div>
       </div>
+      {/* Outside the card so the hover stats overlay doesn't cover it */}
+      {consentControl && <div style={{ marginTop: '8px' }}>{consentControl}</div>}
     </motion.div>
   );
 }
@@ -135,9 +180,50 @@ export default function Shortlist() {
   const { data: settings } = useSettings();
   const [stageFilter, setStageFilter] = useState('creator');
   const [activeCategory, setActiveCategory] = useState(null); // null = "All"
-  const { data: shortlists = [], isLoading } = useShortlists(stageFilter);
+  const { data: shortlists = [], isLoading, isFetching } = useShortlists(stageFilter);
 
   const currentStage = settings?.currentStage || 'setup';
+
+  // Finalist consent is managed on the Executive Top 5 while public voting is open
+  const consentEditable = stageFilter === 'executive' && currentStage === 'public_voting';
+  const { data: withdrawn = [] } = useWithdrawnFinalists(stageFilter === 'executive');
+  const consentMutation = useUpdateFinalistConsent();
+  const [consentError, setConsentError] = useState(null);
+
+  // Declining or restoring reruns the Top 5, so it goes through a confirmation modal
+  const [pendingConsent, setPendingConsent] = useState(null); // { nominee, consent, restore }
+  const [recalculating, setRecalculating] = useState(false);
+  const busy = consentMutation.isPending || recalculating;
+  const loadingNomineeId = consentMutation.isPending ? consentMutation.variables?.nomineeId : null;
+
+  const applyConsent = (nominee, consent) => {
+    setConsentError(null);
+    consentMutation.mutate(
+      { nomineeId: nominee?._id, consent },
+      {
+        onSuccess: (data) => {
+          setPendingConsent(null);
+          // Keep the loader up until the recalculated Top 5 has been refetched
+          if (data?.recalculated) setRecalculating(true);
+        },
+        onError: (err) => setConsentError(err?.response?.data?.message || 'Could not update consent'),
+      }
+    );
+  };
+
+  const setConsent = (nominee, consent, restore = false) => {
+    if (consent === false || restore) {
+      setConsentError(null);
+      setPendingConsent({ nominee, consent, restore });
+      return;
+    }
+    applyConsent(nominee, consent);
+  };
+
+  // Recalculation finished once the shortlist refetch completes
+  React.useEffect(() => {
+    if (recalculating && !consentMutation.isPending && !isFetching) setRecalculating(false);
+  }, [recalculating, consentMutation.isPending, isFetching]);
 
   // Group rows by category
   const grouped = useMemo(() => {
@@ -237,6 +323,17 @@ export default function Shortlist() {
           );
         })}
       </motion.div>
+
+      {/* Top 5 recalculation in progress */}
+      {stageFilter === 'executive' && busy && (
+        <div
+          className="d-flex align-items-center gap-2 mb-3"
+          style={{ padding: '10px 14px', borderRadius: '8px', background: '#5006ba10', color: '#5006ba', fontSize: '13px', fontWeight: 600 }}
+        >
+          <output className="spinner-border spinner-border-sm"></output>
+          {recalculating || pendingConsent ? 'Recalculating Top 5 finalists…' : 'Saving consent…'}
+        </div>
+      )}
 
       {/* Content */}
       {isLoading ? (
@@ -352,10 +449,131 @@ export default function Shortlist() {
               transition={{ duration: 0.25 }}
             >
               {visibleRows.map((row, i) => (
-                <NomineeCard key={row._id || i} row={row} index={i} />
+                <NomineeCard
+                  key={row._id || i}
+                  row={row}
+                  index={i}
+                  consentControl={stageFilter === 'executive' && (
+                    <ConsentControl
+                      consent={row.nomineeId?.finalistConsent}
+                      disabled={!consentEditable || busy}
+                      loadingValue={
+                        loadingNomineeId && String(loadingNomineeId) === String(row.nomineeId?._id)
+                          ? consentMutation.variables?.consent
+                          : undefined
+                      }
+                      onChange={(value) => setConsent(row.nomineeId, value)}
+                    />
+                  )}
+                />
               ))}
             </motion.div>
           </AnimatePresence>
+        </>
+      )}
+
+      {/* Finalist consent: errors + declined finalists (restorable) */}
+      {stageFilter === 'executive' && consentError && !pendingConsent && (
+        <div className="alert alert-danger py-2" style={{ fontSize: '13px' }}>{consentError}</div>
+      )}
+      {stageFilter === 'executive' && withdrawn.length > 0 && (
+        <div className="card clt-card mb-5">
+          <div className="card-body">
+            <h6 className="cat-form-title mb-1">Withdrawn finalists</h6>
+            <p className="cat-form-subtitle mb-3">
+              These nominees declined consent and were replaced by the next contender in their category.
+            </p>
+            {withdrawn.map((n) => (
+              <div key={n._id} className="d-flex align-items-center justify-content-between py-2" style={{ borderTop: '1px solid #F3F4F6' }}>
+                <div style={{ fontSize: '14px' }}>
+                  <strong>{n.name}</strong>
+                  <span style={{ color: '#9CA3AF', fontSize: '12px' }}> · {n.categoryId?.name || 'Unknown Category'}</span>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  disabled={!consentEditable || busy}
+                  onClick={() => setConsent(n, null, true)}
+                  style={{ fontSize: '12px', fontWeight: 600, border: '1px solid #5006ba', color: '#5006ba', background: '#fff' }}
+                >
+                  {loadingNomineeId && String(loadingNomineeId) === String(n._id)
+                    ? <><output className="spinner-border spinner-border-sm me-2"></output>Restoring…</>
+                    : 'Restore to Top 5'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Consent confirmation modal (decline / restore reruns the Top 5) */}
+      {pendingConsent && (
+        <>
+          <div
+            className="modal-backdrop show"
+            style={{ opacity: 0.5 }}
+            onClick={() => !consentMutation.isPending && setPendingConsent(null)}
+          />
+          <div className="modal d-block" tabIndex="-1" onClick={() => !consentMutation.isPending && setPendingConsent(null)}>
+            <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content" style={{ borderRadius: '16px', border: 'none' }}>
+                <div className="modal-body p-4">
+                  <div className="d-flex align-items-center gap-3 mb-3">
+                    <div
+                      className="d-flex align-items-center justify-content-center"
+                      style={{
+                        width: '48px', height: '48px', borderRadius: '12px', fontSize: '22px',
+                        background: pendingConsent.restore ? '#5006ba15' : '#FEE2E2',
+                        color: pendingConsent.restore ? '#5006ba' : '#B91C1C',
+                      }}
+                    >
+                      <i className={`bi ${pendingConsent.restore ? 'bi-arrow-counterclockwise' : 'bi-person-x'}`}></i>
+                    </div>
+                    <div>
+                      <h6 className="mb-0" style={{ fontSize: '16px', fontWeight: 700 }}>
+                        {pendingConsent.restore ? 'Restore Finalist' : 'Decline Finalist Consent'}
+                      </h6>
+                      <p className="mb-0" style={{ fontSize: '13px', color: '#6B7280' }}>
+                        This recalculates the Top 5 for the category
+                      </p>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>
+                    {pendingConsent.restore ? (
+                      <>Restore <strong>{pendingConsent.nominee?.name}</strong> to the finalist ranking? If their score places them in the Top 5, the lowest-ranked contender will drop out.</>
+                    ) : (
+                      <>Mark <strong>{pendingConsent.nominee?.name}</strong> as declined? They will be removed from the Top 5 and the public voting page, and the next contender will take their place.</>
+                    )}
+                  </p>
+                  {consentError && (
+                    <div className="alert alert-danger py-2 mb-0" style={{ fontSize: '13px' }}>{consentError}</div>
+                  )}
+                  <div className="d-flex gap-2 justify-content-end mt-4">
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={() => setPendingConsent(null)}
+                      disabled={consentMutation.isPending}
+                      style={{ borderRadius: '8px', fontSize: '13px' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="cat-form-submit"
+                      onClick={() => applyConsent(pendingConsent.nominee, pendingConsent.consent)}
+                      disabled={consentMutation.isPending}
+                      style={{ width: 'auto', paddingLeft: '20px', paddingRight: '20px' }}
+                    >
+                      {consentMutation.isPending ? (
+                        <><output className="spinner-border spinner-border-sm me-2"></output>Recalculating…</>
+                      ) : (
+                        <><i className="bi bi-check-lg me-2"></i>{pendingConsent.restore ? 'Restore' : 'Decline & Recalculate'}</>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>

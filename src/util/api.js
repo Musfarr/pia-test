@@ -186,6 +186,18 @@ export const getShortlists = async (stage) => {
   return response.data;
 };
 
+// Top 5 finalists who declined consent (replaced by the next contender)
+export const getWithdrawnFinalists = async () => {
+  const response = await api.get('/shortlists/withdrawn');
+  return response.data;
+};
+
+// consent: true (consented) | false (declined) | null (pending)
+export const updateFinalistConsent = async ({ nomineeId, consent }) => {
+  const response = await api.patch('/shortlists/consent', { nomineeId, consent });
+  return response.data;
+};
+
 // ── Dashboard KPIs ──
 export const getDashboardStats = async () => {
   const response = await api.get('/dashboard/stats');

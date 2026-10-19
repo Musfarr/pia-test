@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthProvider';
-import { useCategories, useCategoryAdmins, useCreateCategoryAdmin, useDeleteCategoryAdmin } from '../hooks/useQueries';
+import { useAllCategories, useCategoryAdmins, useCreateCategoryAdmin, useDeleteCategoryAdmin, useSettings } from '../hooks/useQueries';
 import { createCategory, deleteCategory, updateCategory } from '../util/api';
 import CategoryTable from '../components/CategoryTable';
 
 export default function Categories() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { data: categories = [], isLoading } = useCategories();
+  const { data: categories = [], isLoading } = useAllCategories();
+  const { data: settings } = useSettings();
   const { data: admins = [], isLoading: adminsLoading } = useCategoryAdmins();
   const createAdminMut = useCreateCategoryAdmin();
   const deleteAdminMut = useDeleteCategoryAdmin();
@@ -313,7 +314,14 @@ export default function Categories() {
         transition={{ duration: 0.4, delay: 0.15, ease: [0.23, 1, 0.32, 1] }}
         className='mt-8 pt-8'
       >
-        <CategoryTable categories={categories} onDelete={handleDelete} onUpdate={handleUpdate} isLoading={isLoading} />
+        <CategoryTable
+          categories={categories}
+          onDelete={handleDelete}
+          onUpdate={handleUpdate}
+          isLoading={isLoading}
+          canToggle
+          currentStage={settings?.currentStage}
+        />
       </motion.div>
 
     </div>

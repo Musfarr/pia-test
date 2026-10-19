@@ -3,9 +3,54 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { updateCategory } from '../util/api';
 import TablePagination from './TablePagination';
+import { useSetCategoryActive } from '../hooks/useQueries';
 
-export default function CategoryTable({ categories, onDelete, onUpdate, isLoading }) {
+// Must match backend STAGE_ENUM order
+const STAGE_ORDER = ['setup', 'creator_rating', 'executive_rating', 'public_voting', 'completed'];
+const STAGE_LABELS = {
+  setup: 'Setup',
+  creator_rating: 'Creator Jury Rating',
+  executive_rating: 'Executive Jury Rating',
+  public_voting: 'Public Voting',
+  completed: 'Completed',
+};
+const JURY_STAGES = ['creator_rating', 'executive_rating'];
+
+const isActive = (category) => category.active !== false;
+
+// Text for the on/off confirmation. Switching back on after the platform moved
+// forward catches the category up; any jury stage it sat out entirely counts as 0.
+const describeToggle = (category, currentStage) => {
+  const current = STAGE_LABELS[currentStage] || currentStage || 'the current stage';
+  if (isActive(category)) {
+    return {
+      title: `Switch off ${category.name}?`,
+      body: `It will be frozen at ${current}. Its nominees will be hidden from jurors, shortlists, public voting and every other list, and later stage changes will skip it. Nothing is deleted, so switching it back on restores everything.`,
+      warning: null,
+    };
+  }
+  const fromIdx = STAGE_ORDER.indexOf(category.deactivatedAtStage);
+  const toIdx = STAGE_ORDER.indexOf(currentStage);
+  const movedOn = fromIdx >= 0 && toIdx > fromIdx;
+  const missedJury = movedOn
+    ? STAGE_ORDER.slice(fromIdx + 1, toIdx).filter((s) => JURY_STAGES.includes(s)).map((s) => STAGE_LABELS[s])
+    : [];
+  return {
+    title: `Switch on ${category.name}?`,
+    body: movedOn
+      ? `It was switched off during ${STAGE_LABELS[category.deactivatedAtStage]}. It will catch up to ${current} by recalculating its shortlists with the scores it already has.`
+      : 'Its nominees, scores and shortlists will be visible again exactly as they were.',
+    warning: missedJury.length
+      ? `It missed ${missedJury.join(' and ')} entirely, so those scores count as 0 for its nominees.`
+      : null,
+  };
+};
+
+export default function CategoryTable({ categories, onDelete, onUpdate, isLoading, canToggle = false, currentStage }) {
   const queryClient = useQueryClient();
+  const setActiveMut = useSetCategoryActive();
+  const [togglingCategory, setTogglingCategory] = useState(null);
+  const [toggleError, setToggleError] = useState(null);
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -38,6 +83,25 @@ export default function CategoryTable({ categories, onDelete, onUpdate, isLoadin
     setSearchInput(e.target.value);
     setPage(1);
   };
+
+  const handleCloseToggle = () => {
+    if (setActiveMut.isPending) return;
+    setTogglingCategory(null);
+    setToggleError(null);
+  };
+
+  const handleConfirmToggle = async () => {
+    setToggleError(null);
+    try {
+      await setActiveMut.mutateAsync({ id: togglingCategory._id, active: !isActive(togglingCategory) });
+      setTogglingCategory(null);
+    } catch (err) {
+      setToggleError(err.response?.data?.message || 'Failed to update category');
+    }
+  };
+
+  const toggleText = togglingCategory ? describeToggle(togglingCategory, currentStage) : null;
+  const colCount = canToggle ? 5 : 4;
 
   const handleStartEdit = (category) => {
     setEditingCategory(category);
@@ -114,37 +178,59 @@ export default function CategoryTable({ categories, onDelete, onUpdate, isLoadin
                 <th className="clt-th ps-4">Category Name</th>
                 <th className="clt-th text-center">Season</th>
                 <th className="clt-th text-center">Created</th>
+                {canToggle && <th className="clt-th text-center">Status</th>}
                 <th className="clt-th text-center pe-4">Actions</th>
               </tr>
             </thead>
             <tbody className="border-top-0">
               {isLoading ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-5">
+                  <td colSpan={colCount} className="text-center py-5">
                     <div className="spinner-border text-primary" role="status"></div>
                     <p className="mb-0 mt-2" style={{ color: '#9CA3AF', fontSize: '14px' }}>Loading categories…</p>
                   </td>
                 </tr>
               ) : !filteredCategories.length ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-5">
+                  <td colSpan={colCount} className="text-center py-5">
                     <i className="bi bi-inbox" style={{ fontSize: '2.5rem', color: '#D1D5DB', display: 'block', marginBottom: '8px' }}></i>
                     <p className="mb-0" style={{ color: '#9CA3AF', fontSize: '14px' }}>No categories found</p>
                   </td>
                 </tr>
               ) : (
                 paginatedCategories.map((item) => (
-                  <tr key={item._id} className="clt-row">
+                  <tr key={item._id} className="clt-row" style={isActive(item) ? undefined : { opacity: 0.6 }}>
                     <td className="ps-4 py-3">
                       <div className="d-flex align-items-center gap-3">
                         <div className="clt-avatar">{item.name.charAt(0).toUpperCase()}</div>
                         <div className="clt-name">{item.name}</div>
+                        {!isActive(item) && (
+                          <span className="clt-badge" style={{ backgroundColor: '#F3F4F6', color: '#6B7280' }}>Off</span>
+                        )}
                       </div>
                     </td>
                     <td className="text-center">
                       <span className="clt-badge" style={{ backgroundColor: '#EEF4FF', color: '#5006ba' }}>{item.season}</span>
                     </td>
                     <td className="text-center clt-cell">{new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                    {canToggle && (
+                      <td className="text-center">
+                        <div className="form-check form-switch d-inline-flex align-items-center gap-2 mb-0">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            role="switch"
+                            id={`cat-active-${item._id}`}
+                            checked={isActive(item)}
+                            onChange={() => setTogglingCategory(item)}
+                            title={isActive(item) ? 'Switch category off' : 'Switch category on'}
+                          />
+                          <label className="form-check-label clt-cell" htmlFor={`cat-active-${item._id}`}>
+                            {isActive(item) ? 'On' : 'Off'}
+                          </label>
+                        </div>
+                      </td>
+                    )}
                     <td className="pe-4 text-center">
                       <div className="d-flex gap-2 justify-content-center">
                         <button
@@ -179,6 +265,81 @@ export default function CategoryTable({ categories, onDelete, onUpdate, isLoadin
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
         />
+      )}
+
+      {/* Switch on/off confirmation (same pattern as the Shortlist consent modal) */}
+      {togglingCategory && toggleText && (
+        <>
+          <div
+            className="modal-backdrop show"
+            style={{ opacity: 0.5 }}
+            onClick={handleCloseToggle}
+          />
+          <div className="modal d-block" tabIndex="-1" onClick={handleCloseToggle}>
+            <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content" style={{ borderRadius: '16px', border: 'none' }}>
+                <div className="modal-body p-4">
+                  <div className="d-flex align-items-center gap-3 mb-3">
+                    <div
+                      className="d-flex align-items-center justify-content-center"
+                      style={{
+                        width: '48px', height: '48px', borderRadius: '12px', fontSize: '22px', flexShrink: 0,
+                        background: isActive(togglingCategory) ? '#FEE2E2' : '#5006ba15',
+                        color: isActive(togglingCategory) ? '#B91C1C' : '#5006ba',
+                      }}
+                    >
+                      <i className={`bi ${isActive(togglingCategory) ? 'bi-pause-circle' : 'bi-play-circle'}`}></i>
+                    </div>
+                    <div>
+                      <h6 className="mb-0" style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+                        {toggleText.title}
+                      </h6>
+                      <p className="mb-0" style={{ fontSize: '13px', color: '#6B7280' }}>
+                        {isActive(togglingCategory) ? 'Nothing is deleted' : 'All of its progress comes back'}
+                      </p>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '14px', color: '#374151', lineHeight: 1.5 }}>
+                    {toggleText.body}
+                  </p>
+                  {toggleText.warning && (
+                    <div className="alert alert-warning py-2 mb-0" style={{ fontSize: '13px' }}>
+                      <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                      {toggleText.warning}
+                    </div>
+                  )}
+                  {toggleError && (
+                    <div className="alert alert-danger py-2 mb-0 mt-2" style={{ fontSize: '13px' }}>{toggleError}</div>
+                  )}
+                  <div className="d-flex gap-2 justify-content-end mt-4">
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={handleCloseToggle}
+                      disabled={setActiveMut.isPending}
+                      style={{ borderRadius: '8px', fontSize: '13px' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="cat-form-submit"
+                      onClick={handleConfirmToggle}
+                      disabled={setActiveMut.isPending}
+                      style={{ width: 'auto', paddingLeft: '20px', paddingRight: '20px' }}
+                    >
+                      {setActiveMut.isPending ? (
+                        <><output className="spinner-border spinner-border-sm me-2"></output>Saving…</>
+                      ) : isActive(togglingCategory) ? (
+                        <><i className="bi bi-pause-circle me-2"></i>Switch off</>
+                      ) : (
+                        <><i className="bi bi-play-circle me-2"></i>Switch on</>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Edit Category Modal */}

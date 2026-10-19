@@ -1,10 +1,30 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCategories, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage, getShortlists, getWithdrawnFinalists, updateFinalistConsent, getDashboardStats, getAuditLogs } from '../util/api';
+import { getCategories, getAllCategories, setCategoryActive, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage, getShortlists, getWithdrawnFinalists, updateFinalistConsent, getDashboardStats, getAuditLogs } from '../util/api';
 
 export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
+  });
+};
+
+// Super Admin Categories page: active + switched-off categories
+export const useAllCategories = () => {
+  return useQuery({
+    queryKey: ['categories', 'all'],
+    queryFn: getAllCategories,
+  });
+};
+
+// Switching a category hides/restores its nominees everywhere (and may rerun its
+// shortlists), so refresh every cached view
+export const useSetCategoryActive = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, active }) => setCategoryActive(id, active),
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
   });
 };
 

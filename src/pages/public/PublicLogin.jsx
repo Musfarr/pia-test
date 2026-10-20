@@ -13,11 +13,14 @@ export default function PublicLogin() {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
 
+  // Digits only so spaced and unspaced numbers are the same voter
+  const cleanPhone = phone.replace(/\D/g, '');
+
   const validate = () => {
     const e = {};
     if (!name.trim()) e.name = 'Name is required';
-    if (!phone.trim()) e.phone = 'Phone is required';
-    else if (!/^\d{10}$/.test(phone.replace(/\D/g, ''))) e.phone = 'Enter a valid 10-digit phone';
+    if (!cleanPhone) e.phone = 'Phone is required';
+    else if (!/^3\d{9}$/.test(cleanPhone)) e.phone = 'Enter a valid 10-digit phone starting with 3';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -28,8 +31,8 @@ export default function PublicLogin() {
     if (!validate()) return;
 
     try {
-      await requestOtpMutation.mutateAsync({ name: name.trim(), phone: phone.trim() });
-      navigate('/vote/verify-otp', { state: { phone: phone.trim(), name: name.trim() } });
+      await requestOtpMutation.mutateAsync({ name: name.trim(), phone: cleanPhone });
+      navigate('/vote/verify-otp', { state: { phone: cleanPhone, name: name.trim() } });
     } catch (err) {
       setServerError(err.response?.data?.message || 'Failed to send OTP');
     }
@@ -75,9 +78,10 @@ export default function PublicLogin() {
               <input
                 className="pv-input"
                 type="tel"
-                placeholder="3XX XXXXXXX"
+                placeholder="3XXXXXXXXX"
+                inputMode="numeric"
                 value={phone}
-                onChange={(e) => { setPhone(e.target.value); if (errors.phone) setErrors({ ...errors, phone: '' }); }}
+                onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '').replace(/^0/, '').slice(0, 10)); if (errors.phone) setErrors({ ...errors, phone: '' }); }}
               />
             </div>
             {errors.phone && <div style={{ fontSize: '12px', color: '#DC2626', marginTop: '4px' }}>{errors.phone}</div>}

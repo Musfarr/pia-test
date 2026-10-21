@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useVoterVerifyOtp, useRequestOtp } from '../../hooks/usePublicQueries';
 import { usePublicAuth } from '../../context/PublicAuthProvider';
 import logo from '../../assets/logow.png';
+import PoweredBy from '../../components/public/PoweredBy';
 
 export default function PublicVerifyOtp() {
   const navigate = useNavigate();
@@ -153,6 +154,7 @@ export default function PublicVerifyOtp() {
           <a href="/vote/login">Change phone number</a>
         </div>
       </motion.div>
+      <PoweredBy />
     </div>
   );
 }

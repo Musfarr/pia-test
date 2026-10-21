@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useRequestOtp } from '../../hooks/usePublicQueries';
 import { usePublicAuth } from '../../context/PublicAuthProvider';
 import logo from '../../assets/logow.png';
+import PoweredBy from '../../components/public/PoweredBy';
 
 export default function PublicLogin() {
   const navigate = useNavigate();
@@ -102,6 +103,7 @@ export default function PublicLogin() {
           </button>
         </form>
       </motion.div>
+      <PoweredBy />
     </div>
   );
 }

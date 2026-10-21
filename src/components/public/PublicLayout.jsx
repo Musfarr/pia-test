@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { usePublicAuth } from '../../context/PublicAuthProvider';
+import PoweredBy from './PoweredBy';
 
 export default function PublicLayout() {
   const { voter, clearVoterSession } = usePublicAuth();
@@ -29,6 +30,7 @@ export default function PublicLayout() {
       {/* Page content */}
       <div className="pv-content">
         <Outlet />
+        <PoweredBy />
       </div>
 
       {/* Bottom tab bar */}

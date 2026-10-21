@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useRequestOtp } from '../../hooks/usePublicQueries';
+import { usePublicAuth } from '../../context/PublicAuthProvider';
 import logo from '../../assets/logow.png';
 
 export default function PublicLogin() {
   const navigate = useNavigate();
+  const { setVoterSession } = usePublicAuth();
   const requestOtpMutation = useRequestOtp();
 
   const [name, setName] = useState('');
@@ -31,7 +33,13 @@ export default function PublicLogin() {
     if (!validate()) return;
 
     try {
-      await requestOtpMutation.mutateAsync({ name: name.trim(), phone: cleanPhone });
+      const data = await requestOtpMutation.mutateAsync({ name: name.trim(), phone: cleanPhone });
+      // Phone already verified once: backend skips OTP and returns a session
+      if (data?.otpRequired === false && data.token) {
+        setVoterSession(data);
+        navigate('/vote');
+        return;
+      }
       navigate('/vote/verify-otp', { state: { phone: cleanPhone, name: name.trim() } });
     } catch (err) {
       setServerError(err.response?.data?.message || 'Failed to send OTP');

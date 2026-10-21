@@ -77,11 +77,18 @@ export default function PublicVerifyOtp() {
   };
 
   const handleResend = async () => {
-    setResendTimer(30);
+    // Matches the backend's 60s resend cooldown
+    setResendTimer(60);
+    setError('');
     try {
-      await resendMutation.mutateAsync({ name, phone });
-    } catch {
-      // Silent — static OTP, resend is cosmetic
+      const data = await resendMutation.mutateAsync({ name, phone });
+      // Phone was verified in the meantime: backend returns a session instead of a code
+      if (data?.otpRequired === false && data.token) {
+        setVoterSession(data);
+        navigate('/vote');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not resend the code');
     }
   };
 

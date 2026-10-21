@@ -53,13 +53,13 @@ export const getCategories = async () => {
   return response.data;
 };
 
-// Super Admin management view: includes switched-off categories
+// Super Admin management view (all categories, including ones hidden from public)
 export const getAllCategories = async () => {
   const response = await api.get('/categories', { params: { includeInactive: true } });
   return response.data;
 };
 
-// Switch a category on/off. Response: { category, caughtUp: [{ stage, count }] }
+// Show/hide a category on public voting. Response: { category }
 export const setCategoryActive = async (id, active) => {
   const response = await api.patch(`/categories/${id}/active`, { active });
   return response.data;

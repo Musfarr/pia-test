@@ -16,8 +16,7 @@ export const useAllCategories = () => {
   });
 };
 
-// Switching a category hides/restores its nominees everywhere (and may rerun its
-// shortlists), so refresh every cached view
+// Switching a category shows/hides it on public voting, so refresh every cached view
 export const useSetCategoryActive = () => {
   const queryClient = useQueryClient();
   return useMutation({

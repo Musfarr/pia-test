@@ -5,8 +5,6 @@ import { updateCategory } from '../util/api';
 import TablePagination from './TablePagination';
 import { useSetCategoryActive } from '../hooks/useQueries';
 
-// Must match backend STAGE_ENUM order
-const STAGE_ORDER = ['setup', 'creator_rating', 'executive_rating', 'public_voting', 'completed'];
 const STAGE_LABELS = {
   setup: 'Setup',
   creator_rating: 'Creator Jury Rating',
@@ -14,34 +12,25 @@ const STAGE_LABELS = {
   public_voting: 'Public Voting',
   completed: 'Completed',
 };
-const JURY_STAGES = ['creator_rating', 'executive_rating'];
 
 const isActive = (category) => category.active !== false;
 
-// Text for the on/off confirmation. Switching back on after the platform moved
-// forward catches the category up; any jury stage it sat out entirely counts as 0.
+// Text for the on/off confirmation. The switch only controls public voting:
+// jury scoring, Top 10 / Top 5 shortlists and finalist consent carry on either way.
 const describeToggle = (category, currentStage) => {
   const current = STAGE_LABELS[currentStage] || currentStage || 'the current stage';
   if (isActive(category)) {
     return {
-      title: `Switch off ${category.name}?`,
-      body: `It will be frozen at ${current}. Its nominees will be hidden from jurors, shortlists, public voting and every other list, and later stage changes will skip it. Nothing is deleted, so switching it back on restores everything.`,
+      title: `Hide ${category.name} from public voting?`,
+      body: `Voters won't see this category. Jury scoring, the Top 10 and Top 5 shortlists and finalist consent carry on as normal (currently ${current}), so you can finalize its nominees before switching it back on. Nothing is deleted.`,
       warning: null,
     };
   }
-  const fromIdx = STAGE_ORDER.indexOf(category.deactivatedAtStage);
-  const toIdx = STAGE_ORDER.indexOf(currentStage);
-  const movedOn = fromIdx >= 0 && toIdx > fromIdx;
-  const missedJury = movedOn
-    ? STAGE_ORDER.slice(fromIdx + 1, toIdx).filter((s) => JURY_STAGES.includes(s)).map((s) => STAGE_LABELS[s])
-    : [];
   return {
-    title: `Switch on ${category.name}?`,
-    body: movedOn
-      ? `It was switched off during ${STAGE_LABELS[category.deactivatedAtStage]}. It will catch up to ${current} by recalculating its shortlists with the scores it already has.`
-      : 'Its nominees, scores and shortlists will be visible again exactly as they were.',
-    warning: missedJury.length
-      ? `It missed ${missedJury.join(' and ')} entirely, so those scores count as 0 for its nominees.`
+    title: `Show ${category.name} on public voting?`,
+    body: 'Voters will see this category with its current Top 5 finalists.',
+    warning: currentStage === 'public_voting'
+      ? 'Public voting is open, so voters can start voting in this category straight away.'
       : null,
   };
 };
@@ -178,7 +167,7 @@ export default function CategoryTable({ categories, onDelete, onUpdate, isLoadin
                 <th className="clt-th ps-4">Category Name</th>
                 <th className="clt-th text-center">Season</th>
                 <th className="clt-th text-center">Created</th>
-                {canToggle && <th className="clt-th text-center">Status</th>}
+                {canToggle && <th className="clt-th text-center">Public voting</th>}
                 <th className="clt-th text-center pe-4">Actions</th>
               </tr>
             </thead>
@@ -199,13 +188,13 @@ export default function CategoryTable({ categories, onDelete, onUpdate, isLoadin
                 </tr>
               ) : (
                 paginatedCategories.map((item) => (
-                  <tr key={item._id} className="clt-row" style={isActive(item) ? undefined : { opacity: 0.6 }}>
+                  <tr key={item._id} className="clt-row">
                     <td className="ps-4 py-3">
                       <div className="d-flex align-items-center gap-3">
                         <div className="clt-avatar">{item.name.charAt(0).toUpperCase()}</div>
                         <div className="clt-name">{item.name}</div>
                         {!isActive(item) && (
-                          <span className="clt-badge" style={{ backgroundColor: '#F3F4F6', color: '#6B7280' }}>Off</span>
+                          <span className="clt-badge" style={{ backgroundColor: '#F3F4F6', color: '#6B7280' }}>Hidden from public</span>
                         )}
                       </div>
                     </td>
@@ -223,7 +212,7 @@ export default function CategoryTable({ categories, onDelete, onUpdate, isLoadin
                             id={`cat-active-${item._id}`}
                             checked={isActive(item)}
                             onChange={() => setTogglingCategory(item)}
-                            title={isActive(item) ? 'Switch category off' : 'Switch category on'}
+                            title={isActive(item) ? 'Hide from public voting' : 'Show on public voting'}
                           />
                           <label className="form-check-label clt-cell" htmlFor={`cat-active-${item._id}`}>
                             {isActive(item) ? 'On' : 'Off'}
@@ -288,14 +277,14 @@ export default function CategoryTable({ categories, onDelete, onUpdate, isLoadin
                         color: isActive(togglingCategory) ? '#B91C1C' : '#5006ba',
                       }}
                     >
-                      <i className={`bi ${isActive(togglingCategory) ? 'bi-pause-circle' : 'bi-play-circle'}`}></i>
+                      <i className={`bi ${isActive(togglingCategory) ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                     </div>
                     <div>
                       <h6 className="mb-0" style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
                         {toggleText.title}
                       </h6>
                       <p className="mb-0" style={{ fontSize: '13px', color: '#6B7280' }}>
-                        {isActive(togglingCategory) ? 'Nothing is deleted' : 'All of its progress comes back'}
+                        {isActive(togglingCategory) ? 'Only affects the public voting site' : 'Makes it live for voters'}
                       </p>
                     </div>
                   </div>
@@ -329,9 +318,9 @@ export default function CategoryTable({ categories, onDelete, onUpdate, isLoadin
                       {setActiveMut.isPending ? (
                         <><output className="spinner-border spinner-border-sm me-2"></output>Saving…</>
                       ) : isActive(togglingCategory) ? (
-                        <><i className="bi bi-pause-circle me-2"></i>Switch off</>
+                        <><i className="bi bi-eye-slash me-2"></i>Hide from public</>
                       ) : (
-                        <><i className="bi bi-play-circle me-2"></i>Switch on</>
+                        <><i className="bi bi-eye me-2"></i>Show on public</>
                       )}
                     </button>
                   </div>

@@ -232,7 +232,7 @@ export default function Shortlist() {
       const catId = row.categoryId?._id || String(row.categoryId);
       const catName = row.categoryId?.name || 'Unknown Category';
       const catSeason = row.categoryId?.season;
-      if (!map.has(catId)) map.set(catId, { id: catId, name: catName, season: catSeason, rows: [] });
+      if (!map.has(catId)) map.set(catId, { id: catId, name: catName, season: catSeason, hiddenFromPublic: row.categoryId?.active === false, rows: [] });
       map.get(catId).rows.push(row);
     }
     for (const [, group] of map) {
@@ -411,7 +411,7 @@ export default function Shortlist() {
                     color: active ? '#5006ba' : '#6B7280',
                   }}
                 >
-                  {group.name} <span style={{ fontSize: '10px', color: '#9CA3AF', fontWeight: 400 }}>({group.rows.length})</span>
+                  {group.name} <span style={{ fontSize: '10px', color: '#9CA3AF', fontWeight: 400 }}>({group.rows.length})</span>{group.hiddenFromPublic && <i className="bi bi-eye-slash ms-1" title="Hidden from public voting" style={{ fontSize: '11px' }}></i>}
                 </button>
               );
             })}

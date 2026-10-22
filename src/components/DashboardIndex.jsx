@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider';
 import { normalizeRole, getDefaultRoute } from '../util/roles';
@@ -11,8 +12,18 @@ import { normalizeRole, getDefaultRoute } from '../util/roles';
  * Usage: <DashboardIndex><DashboardHome /></DashboardIndex>
  */
 export default function DashboardIndex({ children }) {
-  const { user } = useAuth();
+  const { user, SetLogoutData } = useAuth();
   const role = normalizeRole(user?.role);
+
+  // Unrecognised role (e.g. a raw "super_admin" account): no access, sign out
+  useEffect(() => {
+    if (!role) SetLogoutData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role]);
+
+  if (!role) {
+    return null;
+  }
 
   if (role === 'super_admin') {
     return children;

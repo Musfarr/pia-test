@@ -44,6 +44,7 @@ export default function Categories() {
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this category? This action cannot be undone.')) return;
     try {
       await deleteCategory(id);
       queryClient.invalidateQueries({ queryKey: ['categories'] });

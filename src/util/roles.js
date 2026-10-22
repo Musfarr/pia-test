@@ -1,10 +1,10 @@
 // ── Role normalization ──
 // Maps the various role strings used in the DB / JWT to canonical roles.
 // This lets the frontend work regardless of whether the backend uses
-// "admin" (current) or "super_admin" (planned), "Creator" or "creator_jury", etc.
+// "Creator" or "creator_jury", etc. Only "admin" grants Super Admin: a raw
+// "super_admin" role is not accepted. Unknown roles normalize to null (no access).
 const ROLE_MAP = {
   admin: 'super_admin',
-  super_admin: 'super_admin',
   category_admin: 'category_admin',
   Creator: 'creator_jury',
   creator_jury: 'creator_jury',
@@ -13,7 +13,7 @@ const ROLE_MAP = {
   auditor: 'auditor',
 };
 
-export const normalizeRole = (role) => ROLE_MAP[role] || role;
+export const normalizeRole = (role) => ROLE_MAP[role] || null;
 
 // ── Role labels ──
 export const ROLE_LABELS = {

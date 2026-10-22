@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthProvider.jsx';
 import { useNavigate } from 'react-router-dom';
-import { login as loginApi } from '../util/api';
+import { login as loginApi, verifyLoginCode } from '../util/api';
 import { getDefaultRoute } from '../util/roles';
 import loginBg from '../assets/bgimg.png';
 import logo from '../assets/logow.png';
@@ -35,9 +35,18 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Admin 2FA: after the password is accepted, ask for the authenticator app code
+  const [codeStep, setCodeStep] = useState(false);
+  const [code, setCode] = useState('');
+  const [info, setInfo] = useState('');
 
   const navigate = useNavigate();
   const { SetLoginData } = useAuth();
+
+  const finishLogin = (data) => {
+    SetLoginData(data);
+    navigate(getDefaultRoute(data?.userData?.role));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,14 +56,48 @@ export default function Login() {
     setLoading(true);
     try {
       const data = await loginApi(email, password);
-      SetLoginData(data);
-      navigate(getDefaultRoute(data?.userData?.role));
+      if (data?.mfaRequired) {
+        setInfo(data.message);
+        setCode('');
+        setCodeStep(true);
+        return;
+      }
+      finishLogin(data);
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed. Please try again.';
       setError(msg);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    if (!code) return;
+
+    setError('');
+    setLoading(true);
+    try {
+      const data = await verifyLoginCode(email, code);
+      finishLogin(data);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Verification failed. Please try again.';
+      setError(msg);
+      // Too many wrong codes, or the sign-in expired: go back to the password step
+      if (err.response?.status === 429 || /sign in again/i.test(msg)) {
+        setCodeStep(false);
+        setPassword('');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const backToPassword = () => {
+    setCodeStep(false);
+    setCode('');
+    setInfo('');
+    setError('');
   };
 
   return (
@@ -101,7 +144,51 @@ export default function Login() {
             <img src={logo} width={200}></img>
           </div>
 
-          {/* Form */}
+          {codeStep ? (
+            <form onSubmit={handleVerifyCode} noValidate>
+
+              {error && (
+                <div className="login-error">
+                  <i className="bi bi-exclamation-circle"></i>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {info && <p className="login-field-label">{info}</p>}
+
+              {/* Login code */}
+              <div className="login-field">
+                <label htmlFor="lf-code" className="login-field-label">Login code</label>
+                <div className="login-input-wrap">
+                  <i className="bi bi-shield-lock login-input-icon" />
+                  <input
+                    type="text"
+                    id="lf-code"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    placeholder="Enter the 6-digit code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                    required
+                    autoComplete="one-time-code"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <button type="submit" className="login-btn-signin" disabled={loading || code.length !== 6}>
+                {loading ? 'Verifying...' : 'Verify and sign in'}
+              </button>
+
+              <div className="login-meta-row">
+                <button type="button" className="login-forgot-link" onClick={backToPassword} style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}>
+                  Back to sign in
+                </button>
+              </div>
+
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} noValidate>
 
             {error && (
@@ -173,6 +260,7 @@ export default function Login() {
             </button>
 
           </form>
+          )}
         </div>
       </div>
 

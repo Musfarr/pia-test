@@ -47,6 +47,12 @@ export const login = async (email, password) => {
   return response.data;
 };
 
+// Admin 2FA: second login step with the authenticator app code
+export const verifyLoginCode = async (email, code) => {
+  const response = await api.post('/login/verify', { email, code });
+  return response.data;
+};
+
 // ── Category API ──
 export const getCategories = async () => {
   const response = await api.get('/categories');

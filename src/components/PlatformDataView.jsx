@@ -11,6 +11,15 @@ const PLATFORMS = [
   { key: 'tiktok', label: 'TikTok', icon: 'bi-tiktok', followerLabel: 'Followers' },
 ];
 
+// Only ever link to http(s). A saved "www.instagram.com/x" gets https:// added;
+// any other scheme (javascript:, data:, ...) is not linked at all.
+const safeProfileHref = (url) => {
+  const value = String(url || '').trim();
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(value)) return null;
+  return value ? `https://${value}` : null;
+};
+
 // ── Per-stat gauge config: each quality metric has its own scale ──
 // ER is realistically 0-15% for most creators, so max=15.
 // Audience/Likers Quality are genuinely 0-100 scores.
@@ -311,9 +320,9 @@ export default function PlatformDataView({ nomineeId, activeTab: controlledTab, 
         ) : (
           <div>
             {/* Profile URL — neumorphic link card */}
-            {platformData.profileUrl && (
+            {platformData.profileUrl && safeProfileHref(platformData.profileUrl) && (
               <a
-                href={platformData.profileUrl}
+                href={safeProfileHref(platformData.profileUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="profile-url-card"

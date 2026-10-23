@@ -52,6 +52,7 @@ export const ROLE_NAV = {
     { href: '/dashboard/jury', label: 'Jury', icon: 'bi-people' },
     { href: '/dashboard/nominees', label: 'Nominees', icon: 'bi-person-badge' },
     { href: '/dashboard/shortlist', label: 'Shortlist', icon: 'bi-trophy' },
+    { href: '/dashboard/public-voting-report', label: 'Voting Report', icon: 'bi-bar-chart-line' },
     { href: '/dashboard/settings', label: 'Settings', icon: 'bi-sliders' },
     { href: '/dashboard/audit-logs', label: 'Audit Logs', icon: 'bi-shield-check' },
   ],
@@ -69,6 +70,7 @@ export const ROLE_NAV = {
   ],
   auditor: [
     { href: '/dashboard/audit-logs', label: 'Overview', icon: 'bi-grid-1x2' },
+    { href: '/dashboard/public-voting-report', label: 'Voting Report', icon: 'bi-bar-chart-line' },
   ],
 };
 
@@ -94,6 +96,7 @@ export const ROUTE_ROLES = {
   'settings': ['super_admin'],
   'shortlist': ['super_admin'],
   'audit-logs': ['auditor', 'super_admin'],
+  'public-voting-report': ['super_admin', 'auditor'],
 };
 
 // Returns true if the given role can access the given route key.

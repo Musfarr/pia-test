@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCategories, getAllCategories, setCategoryActive, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage, getShortlists, getWithdrawnFinalists, updateFinalistConsent, getDashboardStats, getAuditLogs } from '../util/api';
+import { getCategories, getAllCategories, setCategoryActive, getJuries, getNominees, getNominee, getNomineeData, getMyNominees, getMyScore, updateCategoryStage, getCategoryAdmins, createCategoryAdmin, deleteCategoryAdmin, getSettings, updateGlobalStage, getShortlists, getWithdrawnFinalists, updateFinalistConsent, getDashboardStats, getAuditLogs, getVotesByCategory } from '../util/api';
 
 export const useCategories = () => {
   return useQuery({
@@ -145,6 +145,15 @@ export const useDashboardStats = () => {
     queryKey: ['dashboard-stats'],
     queryFn: getDashboardStats,
     refetchInterval: 30000,
+  });
+};
+
+// ── Public voting report ──
+export const useVotesByCategory = () => {
+  return useQuery({
+    queryKey: ['public-voting-report'],
+    queryFn: getVotesByCategory,
+    refetchInterval: 60000,
   });
 };
 

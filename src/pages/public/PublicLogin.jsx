@@ -74,6 +74,7 @@ export default function PublicLogin() {
               className="pv-input"
               type="text"
               placeholder="Your name"
+              maxLength={30}
               value={name}
               onChange={(e) => { setName(e.target.value); if (errors.name) setErrors({ ...errors, name: '' }); }}
             />

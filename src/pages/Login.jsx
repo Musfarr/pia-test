@@ -207,6 +207,7 @@ export default function Login() {
                   type="email"
                   id="lf-email"
                   placeholder="Enter your email"
+                  maxLength={40}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

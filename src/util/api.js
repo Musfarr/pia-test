@@ -222,6 +222,12 @@ export const getDashboardStats = async () => {
   return response.data;
 };
 
+// ── Public voting report ──
+export const getVotesByCategory = async () => {
+  const response = await api.get('/public-reports/votes-by-category');
+  return response.data;
+};
+
 // ── Audit Logs API ──
 export const getAuditLogs = async (params = {}) => {
   const response = await api.get('/audit-logs', { params });

@@ -1,0 +1,64 @@
+/* Public voting report: only what the shared dashboard styles don't already cover */
+
+.vr-insight { font-size: 14px; color: #6B7280; margin: 0 0 16px; }
+.vr-insight strong { color: #111827; }
+.vr-day-list { max-height: 230px; }
+.vr-day-row { padding: 2px 0; }
+.vr-day-name { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: #111827; }
+.vr-day-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.vr-peak-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #fff;
+  color: #5006ba;
+}
+
+.vr-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: radial-gradient(circle at 60% 40%, #6510b4, #29055e);
+}
+.vr-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.vr-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Runners-up: same purple, lighter, so the leader stands out */
+.gradient-progress-track .vr-fill-soft { background: rgba(101, 16, 180, 0.35); }
+
+/* Range filter: pill toggle in the card header */
+.vr-range { display: inline-flex; gap: 4px; padding: 3px; border-radius: 10px; background: #E5E7EB; }
+.vr-range-btn {
+  border: 0;
+  background: transparent;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #6B7280;
+  transition: background 0.2s, color 0.2s;
+}
+.vr-range-btn:hover { color: #111827; }
+.vr-range-btn:focus-visible { outline: 2px solid #5006ba; outline-offset: 2px; }
+.vr-range-btn--active {
+  background: radial-gradient(circle at 60% 40%, #6510b4, #29055e);
+  color: #fff;
+}
+.vr-range-btn--active:hover { color: #fff; }

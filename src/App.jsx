@@ -14,6 +14,7 @@ import RateNominee from './pages/RateNominee';
 import Settings from './pages/Settings';
 import Shortlist from './pages/Shortlist';
 import AuditLogs from './pages/AuditLogs';
+import PublicVotingReport from './pages/PublicVotingReport';
 import Login from './pages/Login';
 import RoleRoute from './components/ProtectedRoute';
 import DashboardIndex from './components/DashboardIndex';
@@ -59,6 +60,7 @@ function AppContent() {
         { path: 'settings', element: <RoleRoute routeKey="settings"><Settings /></RoleRoute> },
         { path: 'shortlist', element: <RoleRoute routeKey="shortlist"><Shortlist /></RoleRoute> },
         { path: 'audit-logs', element: <RoleRoute routeKey="audit-logs"><AuditLogs /></RoleRoute> },
+        { path: 'public-voting-report', element: <RoleRoute routeKey="public-voting-report"><PublicVotingReport /></RoleRoute> },
       ],
     },
     {

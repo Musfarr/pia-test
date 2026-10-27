@@ -36,15 +36,48 @@ function SummaryCards({ summary }) {
     { icon: 'bi-check2-square', label: 'Votes Cast', value: fmt(summary.totalVotes), sub: 'for the Top 5 finalists' },
     { icon: 'bi-people', label: 'People Who Voted', value: fmt(summary.voted), sub: `${turnout}% of verified phones` },
     { icon: 'bi-bar-chart-steps', label: 'Votes Per Person', value: summary.avgVotesPerVoter, sub: 'on average' },
-    { icon: 'bi-hourglass-split', label: 'Verified, Not Voted', value: fmt(summary.verifiedNotVoted), sub: `${fmt(summary.verified)} verified in total` },
+    { icon: 'bi-hourglass-split', label: 'Verified, Not Voted', value: fmt(summary.verifiedNotVoted), sub: 'verified phones yet to vote' },
   ];
 
+  return <CardRow cards={cards} />;
+}
+
+// OTP cards: people who requested a code on each channel. Sign-ups during the
+// WhatsApp outages never received a code, so they are left out of these counts.
+function OtpCards({ summary, otp }) {
+  const when = (iso) => new Date(iso).toLocaleString('en-PK', {
+    day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Karachi',
+  });
+  const smsStart = when(otp.smsStartedAt);
+  const whatsappEnd = otp.whatsappEndedAt ? when(otp.whatsappEndedAt) : smsStart;
+  const cards = [
+    { icon: 'bi-patch-check', label: 'Verified Phones', value: fmt(summary.verified), sub: 'completed OTP' },
+    otp.whatsappTotal
+      ? { icon: 'bi-whatsapp', label: 'OTPs Sent (WhatsApp)', value: fmt(otp.whatsappTotal), sub: `` }
+      : { icon: 'bi-whatsapp', label: 'OTPs Sent (WhatsApp)', value: fmt(otp.whatsappSent), sub: `people, until ${whatsappEnd}` },
+    otp.smsTotal
+      ? {
+        icon: 'bi-send-check',
+        label: 'Total SMS Sent',
+        value: fmt(otp.smsTotal.total),
+        sub: `${otp.smsTotal.exact ? '' : ''} incl. repeats`,
+      }
+      : { icon: 'bi-chat-left-text', label: 'OTPs Sent (SMS)', value: fmt(otp.smsSent), sub: `people, since ${smsStart}` },
+    otp.totalSent != null
+      ? { icon: 'bi-send', label: 'Total OTPs Sent', value: fmt(otp.totalSent), sub: 'WhatsApp + SMS' }
+      : { icon: 'bi-x-octagon', label: 'Sent, Not Verified', value: fmt(otp.notVerified), sub: `${otp.notVerifiedPct}% · ${fmt(otp.outageExcluded)} outage sign-ups excluded` },
+  ];
+
+  return <CardRow cards={cards} />;
+}
+
+function CardRow({ cards }) {
   return (
     <div className="row g-3">
       {cards.map((c, i) => (
         <motion.div
           key={c.label}
-          className="col-sm-6 col-lg-3"
+          className={cards.length > 4 ? 'col-sm-6 col-xl' : 'col-sm-6 col-lg-3'}
           {...fadeUp(i)}
           whileHover={{ y: -3, transition: { duration: 0.18 } }}
         >
@@ -183,46 +216,46 @@ function VotesPerDay({ allDays, range, onRangeChange }) {
           </p>
         ) : (
 
-        <div className="row align-items-center g-4">
-          <div className="col-12 col-md-5">
-            <ReactECharts ref={chartRef} option={option} style={{ height: '260px' }} notMerge />
-          </div>
+          <div className="row align-items-center g-4">
+            <div className="col-12 col-md-5">
+              <ReactECharts ref={chartRef} option={option} style={{ height: '260px' }} notMerge />
+            </div>
 
-          <div className="col-12 col-md-7">
-            <p className="vr-insight">
-              <strong>{formatDay(peak.date)}</strong> was the busiest day in {periodLabel}, with {formatShare(peak.votes, total)}% of its votes. Pakistan time.
-            </p>
-            <div className="d-flex flex-column gap-3 kpi-scroll-list vr-day-list" role="list">
-              {newestFirst.map((d) => (
-                <div
-                  key={d.date}
-                  role="listitem"
-                  className="vr-day-row"
-                  onMouseEnter={() => highlight(days.indexOf(d), 'highlight')}
-                  onMouseLeave={() => highlight(days.indexOf(d), 'downplay')}
-                >
-                  <div className="d-flex align-items-center justify-content-between mb-1">
-                    <span className="vr-day-name">
-                      <span className="vr-day-dot" style={{ background: colorOf(d.date) }} />
-                      {formatDay(d.date)}
-                      {d.date === peak.date && <span className="vr-peak-tag">Busiest</span>}
-                    </span>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#5006ba' }}>
-                      {fmt(d.votes)}
-                      <span className="kpi-sub ms-1" style={{ fontWeight: 400 }}>{formatShare(d.votes, total)}%</span>
-                    </span>
+            <div className="col-12 col-md-7">
+              <p className="vr-insight">
+                <strong>{formatDay(peak.date)}</strong> was the busiest day in {periodLabel}, with {formatShare(peak.votes, total)}% of its votes. Pakistan time.
+              </p>
+              <div className="d-flex flex-column gap-3 kpi-scroll-list vr-day-list" role="list">
+                {newestFirst.map((d) => (
+                  <div
+                    key={d.date}
+                    role="listitem"
+                    className="vr-day-row"
+                    onMouseEnter={() => highlight(days.indexOf(d), 'highlight')}
+                    onMouseLeave={() => highlight(days.indexOf(d), 'downplay')}
+                  >
+                    <div className="d-flex align-items-center justify-content-between mb-1">
+                      <span className="vr-day-name">
+                        <span className="vr-day-dot" style={{ background: colorOf(d.date) }} />
+                        {formatDay(d.date)}
+                        {d.date === peak.date && <span className="vr-peak-tag">Busiest</span>}
+                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#5006ba' }}>
+                        {fmt(d.votes)}
+                        <span className="kpi-sub ms-1" style={{ fontWeight: 400 }}>{formatShare(d.votes, total)}%</span>
+                      </span>
+                    </div>
+                    <div className="gradient-progress-track" style={{ height: '6px' }}>
+                      <div
+                        className="gradient-progress-fill"
+                        style={{ width: `${total > 0 ? (d.votes / total) * 100 : 0}%`, background: colorOf(d.date) }}
+                      />
+                    </div>
                   </div>
-                  <div className="gradient-progress-track" style={{ height: '6px' }}>
-                    <div
-                      className="gradient-progress-fill"
-                      style={{ width: `${total > 0 ? (d.votes / total) * 100 : 0}%`, background: colorOf(d.date) }}
-                    />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
         )}
       </div>
     </div>
@@ -547,6 +580,12 @@ export default function PublicVotingReport() {
       <div className="mb-4">
         <SummaryCards summary={data.summary} />
       </div>
+
+      {data.otp && (
+        <div className="mb-4">
+          <OtpCards summary={data.summary} otp={data.otp} />
+        </div>
+      )}
 
       {data.perDay.length > 0 && (
         <motion.div className="mb-4" {...fadeUp(4)}>

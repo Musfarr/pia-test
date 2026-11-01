@@ -24,6 +24,8 @@ export default function PublicLogin() {
     if (!name.trim()) e.name = 'Name is required';
     if (!cleanPhone) e.phone = 'Phone is required';
     else if (!/^3\d{9}$/.test(cleanPhone)) e.phone = 'Enter a valid 10-digit phone starting with 3';
+    // All the same digit (3000000000, 3333333333): a fake number that would waste an SMS
+    else if (/^3(\d)\1{8}$/.test(cleanPhone)) e.phone = 'Enter a valid 10-digit phone';
     setErrors(e);
     return Object.keys(e).length === 0;
   };

@@ -62,6 +62,14 @@ function NomineeCard({ row, index, consentControl }) {
   const nomineeName = typeof nominee === 'object' ? nominee?.name : 'Unknown';
   const initial = nomineeName?.charAt(0).toUpperCase();
   const isPodium = row.rank <= 3;
+  // Each stage is scored out of a different total: creator 30, executive 30+40, public 30+40+30
+  const isPublic = row.stage === 'public';
+  const maxScore = { creator: 30, executive: 70, public: 100 }[row.stage] ?? 70;
+  const jurorCount = (row.creatorJuryCount || 0) + (row.executiveJuryCount || 0);
+  // Public stage: real public vote count. Earlier stages: how many jurors rated the nominee.
+  const countLabel = isPublic
+    ? ((row.voteCount || 0) > 0 ? `${row.voteCount.toLocaleString('en-US')} votes` : 'No votes')
+    : (jurorCount > 0 ? `${jurorCount} ${jurorCount === 1 ? 'juror' : 'jurors'} rated` : 'Not rated yet');
   const profileImage = typeof nominee === 'object' ? nominee?.profileImage : null;
 
   // Use nominee's profile photo if available, otherwise fall back to initial-letter avatar
@@ -132,40 +140,46 @@ function NomineeCard({ row, index, consentControl }) {
         <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500 }}>
             <i className="bi bi-bar-chart me-1" style={{ color: '#6510b4' }}></i>
-            {row.score.toFixed(1)}<span style={{ fontSize: '10px', color: '#9CA3AF' }}>/70</span>
+            {row.score.toFixed(1)}<span style={{ fontSize: '10px', color: '#9CA3AF' }}>/{maxScore}</span>
           </span>
-          <span style={{ fontSize: '11px', color: '#9CA3AF' }}>
-            {row.creatorJuryCount + row.executiveJuryCount > 0
-              ? `${row.creatorJuryCount + row.executiveJuryCount} votes`
-              : 'No votes'}
-          </span>
+          <span style={{ fontSize: '11px', color: '#9CA3AF' }}>{countLabel}</span>
         </div>
 
-        {/* Hover stats overlay — slides up on hover */}
-        <div className="sl-hover-stats">
-          <div className="d-flex gap-2">
-            <div style={{ flex: 1, background: 'rgba(255,255,255,0.12)', borderRadius: '8px', padding: '8px 10px', backdropFilter: 'blur(4px)' }}>
-              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Creator</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#dbff00' }}>
-                {row.creatorScore > 0 ? row.creatorScore.toFixed(1) : '—'}
-                {row.creatorScore > 0 && <span style={{ fontSize: '20px', color: 'rgba(255,255,255,0.6)' }}>/30</span>}
+        {/* Hover stats overlay — slides up on hover. Public tab has three boxes plus a total, so it is more compact. */}
+        <div className="sl-hover-stats" style={isPublic ? { padding: '14px 10px', background: 'linear-gradient(to top, rgba(10,10,12,0.95), rgba(10,10,12,0.88))' } : undefined}>
+          {(() => {
+            const box = isPublic
+              ? { padding: '6px 8px', value: 17, unit: 11 }
+              : { padding: '8px 10px', value: 22, unit: 20 };
+            const stats = [
+              { label: 'Creator', value: row.creatorScore, max: 30 },
+              { label: 'Executive', value: row.executiveScore, max: 40 },
+              ...(isPublic ? [{ label: 'Public', value: row.publicScore, max: 30 }] : []),
+            ];
+            return (
+              <div className="d-flex" style={{ gap: isPublic ? '6px' : '8px' }}>
+                {stats.map((s) => (
+                  <div
+                    key={s.label}
+                    style={{ flex: 1, minWidth: 0, background: 'rgba(255,255,255,0.12)', borderRadius: '8px', padding: box.padding, backdropFilter: 'blur(4px)' }}
+                  >
+                    <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>{s.label}</div>
+                    <div style={{ fontSize: `${box.value}px`, fontWeight: 700, color: '#dbff00', whiteSpace: 'nowrap', lineHeight: 1.2 }}>
+                      {s.value > 0 ? s.value.toFixed(1) : '—'}
+                      {s.value > 0 && <span style={{ fontSize: `${box.unit}px`, color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>/{s.max}</span>}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-            <div style={{ flex: 1, background: 'rgba(255,255,255,0.12)', borderRadius: '8px', padding: '8px 10px', backdropFilter: 'blur(4px)' }}>
-              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Executive</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#dbff00' }}>
-                {row.executiveScore > 0 ? row.executiveScore.toFixed(1) : '—'}
-                {row.executiveScore > 0 && <span style={{ fontSize: '20px', color: 'rgba(255,255,255,0.6)' }}>/40</span>}
-              </div>
-            </div>
-          </div>
-          <div className="d-flex align-items-center justify-content-center mt-2" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>
-            {/* <span>
-              {row.creatorJuryCount > 0 && <span className="me-2">C: {row.creatorJuryCount}</span>}
-              {row.executiveJuryCount > 0 && <span>E: {row.executiveJuryCount}</span>}
-            </span> */}
-            <span style={{ fontWeight: 700, color: '#dbff00', fontSize: '22px' }}>
-              {row.score.toFixed(1)}<span style={{ fontSize: '22px', color: 'rgba(255,255,255,0.6)' }}>/70</span>
+            );
+          })()}
+          <div
+            className="d-flex align-items-center justify-content-center"
+            style={{ marginTop: isPublic ? '8px' : '8px', gap: '6px', color: 'rgba(255,255,255,0.7)' }}
+          >
+            {isPublic && <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Total</span>}
+            <span style={{ fontWeight: 700, color: '#dbff00', fontSize: isPublic ? '18px' : '22px', whiteSpace: 'nowrap' }}>
+              {row.score.toFixed(1)}<span style={{ fontSize: isPublic ? '12px' : '22px', color: 'rgba(255,255,255,0.6)' }}>/{maxScore}</span>
             </span>
           </div>
         </div>
